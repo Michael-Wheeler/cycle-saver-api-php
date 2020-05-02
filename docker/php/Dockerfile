@@ -1,34 +1,35 @@
-FROM php:7.3-fpm-alpine
-
-# Copy composer.lock and composer.json
-COPY composer.lock composer.json /var/www/
-
-# Set working directory
+FROM composer:1.9.3 AS composer
 WORKDIR /opt
 
-# Install dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    nginx \
-    curl
+COPY composer.json /opt
+COPY composer.lock /opt
+RUN composer install
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+FROM php:7.4-fpm-alpine
 
-# Install extensions
+COPY --from=composer /opt/vendor /opt/src/vendor
+#TODO Decide what we can leave out of copying to docker
+COPY ./ /opt
+
+RUN apk add --update --no-cache \
+    curl \
+    vim \
+    $PHPIZE_DEPS \
+    libcurl \
+    curl-dev
+#     nginx
+
 RUN docker-php-ext-install -j$(nproc) \
-    mongodb \
     pdo \
     curl \
-    json \
-    opcache
+#     opcache \
+    json
 
-# Copy existing application directory contents
-COPY . /var/www
+RUN pecl install mongodb-1.7.2 \
+    && docker-php-ext-enable mongodb
 
-# Copy existing application directory permissions
 COPY --chown=www-data ./src /opt/src/
 
-
-# Expose port 9000 and start php-fpm server
 EXPOSE 80
+WORKDIR /opt
 CMD ["php-fpm"]

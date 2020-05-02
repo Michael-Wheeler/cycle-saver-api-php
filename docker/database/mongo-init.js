@@ -4,10 +4,9 @@ db.createUser(
     pwd: "pass",
     roles: [
       {
-        role: "readwrite",
+        role: "root",
         db : "users"
       }
     ]
   }
 )
-db.container.insert({ myfield: 'hello', thatfield: 'testing' })

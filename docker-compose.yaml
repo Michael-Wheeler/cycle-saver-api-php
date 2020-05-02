@@ -1,25 +1,27 @@
 version: '3.7'
 
 services:
-
   web:
     image: nginx:latest
+    restart: always
     ports:
       - "8080:80"
     volumes:
-      - ./src:/opt
-      - ./site.conf:/etc/nginx/conf.d/default.conf
-      - ./log.conf:/usr/local/etc/php-fpm.d/zz-log.conf
-    networks:
-      - server
+      - ./:/opt
+      - ./docker/nginx/site.conf:/etc/nginx/conf.d/default.conf
+      - ./docker/nginx/log.conf:/usr/local/etc/php-fpm.d/zz-log.conf
     depends_on:
       - php
       - mongo
+    networks:
+      - server
 
   php:
-    image: php:7-fpm
+    build:
+      dockerfile: ./docker/php/Dockerfile
+      context: ./
     volumes:
-      - ./src:/opt
+      - ./:/opt
       - ./docker/php/php.ini:/usr/local/etc/php/php.ini
     networks:
       - server
@@ -29,7 +31,7 @@ services:
     image: mongo
     volumes:
       - mongo-data:/opt/data/db
-      - ./database/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./docker/database/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=pass
@@ -55,5 +57,4 @@ volumes:
 
 networks:
   server:
-    database:
-
+  database:

@@ -1,0 +1,24 @@
+{
+  "name": "michael-wheeler/cycle-saver-api-php",
+  "description": "Calculate commute savings",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Michael Wheeler",
+      "email": "michael.wheeler856@gmail.com"
+    }
+  ],
+  "require": {
+    "php": "~7.4",
+    "slim/slim": "^4.0",
+    "slim/psr7": "^1.0",
+    "slim/http": "^1.0"
+  },
+  "config": {
+    "platform": {
+      "php": "7.4",
+      "ext-mongodb": "7.4",
+      "ext-json": "7.4"
+    }
+  }
+}
