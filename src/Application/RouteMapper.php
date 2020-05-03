@@ -10,10 +10,6 @@ $app->get('/', function (ServerRequestInterface $request, Response $response, $a
 });
 
 //TODO Use single controller file for all endpoint methods?
+//TODO could use groups to break route mapping file up if needed
 $app->get('/hello', HelloController::class . ':getHello');
-
-$app->get('/hello/{name}', function (ServerRequestInterface $request, Response $response, $args) {
-    $name = $args['name'];
-    $response->getBody()->write("Hello, $name");
-    return $response;
-});
+$app->get('/hello/{name}', HelloController::class . ':getHelloName');
