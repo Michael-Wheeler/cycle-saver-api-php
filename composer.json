@@ -10,15 +10,23 @@
   ],
   "require": {
     "php": "~7.4",
+    "ext-mongodb": "*",
+    "ext-json": "*",
     "slim/slim": "^4.0",
     "slim/psr7": "^1.0",
-    "slim/http": "^1.0"
+    "slim/http": "^1.0",
+    "php-di/php-di": "^6.1"
   },
   "config": {
     "platform": {
       "php": "7.4",
       "ext-mongodb": "7.4",
       "ext-json": "7.4"
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "CycleSaver\\": "src/"
     }
   }
 }
