@@ -12,3 +12,4 @@ ToDo:
  - Utilise nginx.conf file
  - Add env variables
  - Create Home Controller integration test
+ - Read: https://www.slimframework.com/docs/v4/middleware/routing.html
