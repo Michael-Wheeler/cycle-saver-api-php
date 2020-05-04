@@ -9,7 +9,7 @@ FROM php:7.4-fpm-alpine
 
 COPY --from=composer /opt/vendor /opt/src/vendor
 #TODO Decide what we can leave out of copying to docker
-COPY ./ /opt
+COPY ./ /opt/
 
 RUN apk add --update --no-cache \
     curl \
@@ -32,4 +32,5 @@ COPY --chown=www-data ./src /opt/src/
 
 EXPOSE 80
 WORKDIR /opt
+RUN chmod +x bin/test
 CMD ["php-fpm"]
