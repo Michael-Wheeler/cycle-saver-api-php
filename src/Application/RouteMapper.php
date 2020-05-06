@@ -1,10 +1,10 @@
 <?php
 
 use CycleSaver\Application\Controllers\HelloController;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Slim\Psr7\Response;
 
-$app->get('/', function (ServerRequestInterface $request, Response $response, $args) {
+$app->get('/', function (ServerRequestInterface $request, ResponseInterface $response, $args) {
     $response->getBody()->write("Hello world!");
     return $response;
 });
