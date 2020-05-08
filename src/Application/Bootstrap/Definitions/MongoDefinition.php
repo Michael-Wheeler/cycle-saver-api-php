@@ -2,9 +2,7 @@
 
 namespace CycleSaver\Application\Bootstrap\ServiceProviders;
 
-use MongoClient;
-
-class MongoDBServiceProvider
+class MongoDefinition implements ServiceDefinition
 {
     public function getDefinitions(): array
     {

@@ -6,6 +6,7 @@ use CycleSaver\Domain\Repository\UserRepositoryInterface;
 use MongoDB\BSON\ObjectId;
 use MongoDB\Driver\BulkWrite;
 use MongoDB\Driver\Manager;
+use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Ramsey\Uuid\Uuid;
 use Slim\Logger;
@@ -15,16 +16,18 @@ class UserRepository implements UserRepositoryInterface
     private $manager;
     private $logger;
 
-    public function __construct()
+    public function __construct(Manager $manager, LoggerInterface $logger)
     {
         require __DIR__ . '/../../vendor/autoload.php';
         $this->logger = new Logger();
-        new LogLevel()
         ini_set('mongodb.debug', 'stderr');
 
         $username = 'root';
         $password = 'pass';
         $this->manager = new Manager("mongodb://${username}:${password}@mongo:27017/");
+
+        $this->manager = $manager;
+        $this->logger = $logger;
     }
 
     public function getById(Uuid $id)
