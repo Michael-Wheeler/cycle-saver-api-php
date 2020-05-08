@@ -16,8 +16,7 @@ class ResponseFactory
             ]
         ]));
 
-        return $response
-            ->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST)
+        return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST)
             ->withAddedHeader('Content-Type', 'application/json');
     }
 
@@ -26,15 +25,16 @@ class ResponseFactory
         return $response->withStatus(StatusCodeInterface::STATUS_CREATED);
     }
 
-    public static function createSuccessfulCreationResponse(object $data, ResponseInterface $response): ResponseInterface
-    {
+    public static function createSuccessfulCreationResponse(
+        object $data,
+        ResponseInterface $response
+    ): ResponseInterface {
         $response->getBody()->write(json_encode([
             'status' => 'SUCCESS',
             'data' => $data
         ]));
 
-        return $response
-            ->withStatus(StatusCodeInterface::STATUS_CREATED)
+        return $response->withStatus(StatusCodeInterface::STATUS_CREATED)
             ->withAddedHeader('Content-Type', 'application/json');
     }
 
@@ -45,8 +45,20 @@ class ResponseFactory
             'data' => $data
         ]));
 
-        return $response
-            ->withStatus(StatusCodeInterface::STATUS_OK)
+        return $response->withStatus(StatusCodeInterface::STATUS_OK)
+            ->withAddedHeader('Content-Type', 'application/json');
+    }
+
+    public static function createInternalErrorResponse(string $message, ResponseInterface $response): ResponseInterface
+    {
+        $response->getBody()->write(json_encode([
+            'status' => 'FAILED',
+            'data' => [
+                'message' => $message
+            ]
+        ]));
+
+        return $response->withStatus(StatusCodeInterface::STATUS_OK)
             ->withAddedHeader('Content-Type', 'application/json');
     }
 }

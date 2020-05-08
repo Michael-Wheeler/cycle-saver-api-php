@@ -1,14 +1,10 @@
 <?php
-
-use CycleSaver\Application\Middleware\TestAfterMiddleware;
-use CycleSaver\Application\Middleware\TestBeforeMiddleware;
-
-// Add Routing Middleware
 //TODO what does this do?
 $app->addRoutingMiddleware();
 
-$app->add(new TestBeforeMiddleware());
-$app->add(new TestAfterMiddleware());
+/** Examples of middleware running before and after controller. Uncomment to try and then remove */
+//$app->add(new TestBeforeMiddleware());
+//$app->add(new TestAfterMiddleware());
 
 /**
  * Add Error Handling Middleware

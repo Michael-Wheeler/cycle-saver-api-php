@@ -36,9 +36,9 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=pass
-#      - MONGO_INITDB_DATABASE=users
-    ports:
-      - "27017:27017"
+    # Don't think this is needed
+    #    ports:
+    #      - "27017:27017"
     networks:
       - database
 
@@ -54,7 +54,7 @@ services:
     depends_on:
       - mongo
     networks:
-       - database
+      - database
 
 volumes:
   mongo-data:

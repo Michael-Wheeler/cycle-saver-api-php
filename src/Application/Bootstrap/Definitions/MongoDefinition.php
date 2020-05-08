@@ -11,8 +11,6 @@ class MongoDefinition implements ServiceDefinition
     {
         return [
             Manager::class => function () {
-//                require __DIR__ . '/../../../../vendor/autoload.php';
-
                 $username = getenv('MONGO_ADMIN');
                 $password = getenv('MONGO_ADMIN_PASS');
 

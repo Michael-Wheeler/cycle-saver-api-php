@@ -1,20 +1,15 @@
 <?php
 
 use Slim\Factory\AppFactory;
-use Slim\Psr7\Factory\ResponseFactory;
 use Slim\Factory\ServerRequestCreatorFactory;
+use Slim\Psr7\Factory\ResponseFactory;
 
-require __DIR__ . '/../../vendor/autoload.php';
+//require __DIR__ . '/../../vendor/autoload.php';
 
-//// Start PHP session
-//session_start();
-
-//// Create Container
-//$container = new Container();
-//
-//AppFactory::setContainer($container);
-
-$app = AppFactory::create(new ResponseFactory());
+$app = AppFactory::create(
+    new ResponseFactory(),
+    $container
+);
 
 $callableResolver = $app->getCallableResolver();
 $responseFactory = $app->getResponseFactory();

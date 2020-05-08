@@ -5,7 +5,7 @@ namespace CycleSaver\Application\Controllers;
 use CycleSaver\Application\ResponseFactory;
 use CycleSaver\Domain\Entities\User;
 use CycleSaver\Domain\Repository\UserRepositoryInterface;
-use CycleSaver\Infrastructure\UserRepository;
+use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Psr7\Response;
@@ -34,12 +34,17 @@ class UserController
             );
         }
 
-        $user = (new User())
-            ->setEmail($body['email'])
-            ->setPassword($body['password']);
+        $user = (new User())->setEmail($body['email'])->setPassword($body['password']);
 
-        $this->repository->save($user);
+        try {
+            $id = $this->repository->save($user);
+        } catch (Exception $e) {
+            return ResponseFactory::createInternalErrorResponse($e->getMessage(), $response);
+        }
 
-        return ResponseFactory::createSuccessfulCreationResponse($user->toObject(), $response);
+        return ResponseFactory::createSuccessfulCreationResponse(
+            (object) ['id' => (string) $id],
+            $response
+        );
     }
 }
