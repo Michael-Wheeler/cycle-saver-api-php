@@ -4,8 +4,6 @@ use Slim\Factory\AppFactory;
 use Slim\Factory\ServerRequestCreatorFactory;
 use Slim\Psr7\Factory\ResponseFactory;
 
-//require __DIR__ . '/../../vendor/autoload.php';
-
 $app = AppFactory::create(
     new ResponseFactory(),
     $container

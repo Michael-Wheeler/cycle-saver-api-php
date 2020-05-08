@@ -58,17 +58,14 @@ class HttpErrorHandler extends ErrorHandler
         }
 
         $error = [
-            'statusCode' => $statusCode,
-            'error' => [
-                'type' => $type,
-                'description' => $description,
+            'status' => 'FAILED',
+            'data' => [
+                'message' => "{$type}: {$description}"
             ],
         ];
 
-        $payload = json_encode($error, JSON_PRETTY_PRINT);
-
         $response = $this->responseFactory->createResponse($statusCode);
-        $response->getBody()->write($payload);
+        $response->getBody()->write(json_encode($error));
 
         return $response;
     }
