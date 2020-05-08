@@ -29,13 +29,16 @@ services:
 
   mongo:
     image: mongo
+    container_name: mongo
     volumes:
-      - mongo-data:/opt/data/db
+      - mongo-data:/data/db
       - ./docker/database/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=pass
-      - MONGO_INITDB_DATABASE=users
+#      - MONGO_INITDB_DATABASE=users
+    ports:
+      - "27017:27017"
     networks:
       - database
 
@@ -47,10 +50,11 @@ services:
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: pass
+      ME_CONFIG_MONGODB_SERVER: mongo
     depends_on:
       - mongo
     networks:
-      - database
+       - database
 
 volumes:
   mongo-data:

@@ -1,18 +1,7 @@
-PHP flavoured Cycle Saver API
+# Cycle Saver API
 
-Stack: Linux, Nginx, MongoDB, PHP
+Cycle saver is a service that consumes your pedal powered commute data and compares it to alternative modes of transport. 
+This allows you to see how much money you saved on buses or trains, how many hours of traffic you filtered through and how much pollution didn't produce.
 
-Tools: Composer, PHPDI
-
-Package structure: https://github.com/php-pds/skeleton
-
-HTTP Framework: https://www.slimframework.com/
-
-ToDo:
- - Add CORS middleware
- - Separate docker-compose into dev and build
- - Clean out docker-compose commands to Dockerfiles
- - Utilise nginx.conf file
- - Add env variables
- - Create Home Controller integration test
- - Read: https://www.slimframework.com/docs/v4/middleware/routing.html
+The first phase of integrations will include Strava for activity tracking and TfL for public transport data. This can be expanded where necessary, 
+especially if it enables calculation of transport costs outside of London.
