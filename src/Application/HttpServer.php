@@ -15,17 +15,6 @@ $responseFactory = $app->getResponseFactory();
 $serverRequestCreator = ServerRequestCreatorFactory::create();
 $request = $serverRequestCreator->createServerRequestFromGlobals();
 
-/**
- * Add Error Handling
- */
 require __DIR__ . '/Handlers/ErrorHandler.php';
-
-/**
- * Add Middleware
- */
 require __DIR__ . '/Middleware/Middleware.php';
-
-/**
- * Define App Routes
- */
 require __DIR__ . '/RouteMapper.php';

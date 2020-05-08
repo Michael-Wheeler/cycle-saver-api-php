@@ -4,11 +4,11 @@ namespace CycleSaver\Domain\Entities;
 
 use Ramsey\Uuid\Uuid;
 
-class User //extends AbstractEntity
+class User
 {
+    private Uuid $id;
     private string $email;
     private string $password;
-    protected Uuid $id;
 
     public function getId(): Uuid
     {
@@ -41,14 +41,5 @@ class User //extends AbstractEntity
     {
         $this->password = $password;
         return $this;
-    }
-
-    public function toObject()
-    {
-        return (object) [
-            'id' => $this->id ?? '',
-            'email' => $this->email ?? '',
-            'password' => $this->password ?? ''
-        ];
     }
 }

@@ -2,9 +2,15 @@
 
 namespace CycleSaver\Domain\Repository;
 
-use Ramsey\Uuid\Uuid;
+use CycleSaver\Domain\Entities\User;
 
-interface UserRepositoryInterface extends RepositoryInterface
+interface UserRepositoryInterface
 {
-
+    /**
+     * @param User $user
+     *
+     * User ID
+     * @return string
+     */
+    public function save(User $user): string;
 }

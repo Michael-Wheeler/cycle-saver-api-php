@@ -2,6 +2,7 @@
 
 namespace CycleSaver\Infrastructure;
 
+use CycleSaver\Domain\Entities\User;
 use CycleSaver\Domain\Repository\UserRepositoryInterface;
 use Exception;
 use MongoDB\BSON\ObjectId;
@@ -33,14 +34,14 @@ class UserRepository implements UserRepositoryInterface
     }
 
     /**
-     * @param $user
+     * @param User $user
      * @return ObjectId
      * @throws Exception
      */
-    public function save($user)
+    public function save(User $user)
     {
         $userArray = [
-            '_id' => $id = new ObjectId,
+            '_id' => $id = new ObjectId(),
             'email' => $user->getEmail(),
             'password' => $user->getPassword()
         ];
