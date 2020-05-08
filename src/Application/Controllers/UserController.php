@@ -14,14 +14,13 @@ class UserController
 {
     private UserRepositoryInterface $repository;
 
-//    public function __construct(UserRepositoryInterface $repository)
-//    {
-//        $this->repository = $repository;
-//    }
+    public function __construct(UserRepositoryInterface $repository)
+    {
+        $this->repository = $repository;
+    }
 
     public function createUser(ServerRequestInterface $request, Response $response, $args): ResponseInterface
     {
-        $this->repository = new UserRepository();
         $body = $request->getParsedBody();
 
         if ($body === null) {

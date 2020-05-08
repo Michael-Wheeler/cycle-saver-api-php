@@ -1,16 +1,27 @@
 <?php
 
-namespace CycleSaver\Application\Bootstrap\ServiceProviders;
+namespace CycleSaver\Application\Bootstrap\Definitions;
+
+use CycleSaver\Application\Bootstrap\ContainerException;
+use MongoDB\Driver\Manager;
 
 class MongoDefinition implements ServiceDefinition
 {
-    public function getDefinitions(): array
+    public static function getDefinitions(): array
     {
-//        require __DIR__ . '/../../../../vendor/autoload.php';
-//
-//        $connection = new MongoClient("mongodb://my-mongo:27017");
-//        return [
-//            new \MongoDB\Client("mongodb://localhost:27017")
-//        ];
+        return [
+            Manager::class => function () {
+//                require __DIR__ . '/../../../../vendor/autoload.php';
+
+                $username = getenv('MONGO_ADMIN');
+                $password = getenv('MONGO_ADMIN_PASS');
+
+                if (!$username || !$password) {
+                    throw new ContainerException('Unable to retrieve MongoDB Admin username and password');
+                }
+
+                return new Manager("mongodb://${username}:${password}@mongo:27017/");
+            }
+        ];
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace CycleSaver\Application\Bootstrap\ServiceProviders;
+namespace CycleSaver\Application\Bootstrap\Definitions;
 
 use DI\Definition\Helper\DefinitionHelper;
 
@@ -11,5 +11,5 @@ interface ServiceDefinition
      *
      * @return DefinitionHelper[]
      */
-    public function getDefinitions(): array;
+    public static function getDefinitions(): array;
 }

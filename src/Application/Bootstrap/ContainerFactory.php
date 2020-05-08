@@ -2,36 +2,36 @@
 
 namespace CycleSaver\Application\Bootstrap;
 
-use CycleSaver\Application\Bootstrap\ServiceProviders\MongoDefinition;
-use CycleSaver\Application\Bootstrap\ServiceProviders\ServiceDefinition;
+use CycleSaver\Application\Bootstrap\Definitions\MongoDefinition;
+use CycleSaver\Application\Bootstrap\Definitions\RepositoryDefinition;
+use CycleSaver\Application\Bootstrap\Definitions\SlimLoggerDefinition;
+use DI\ContainerBuilder;
 use DI\Definition\Helper\DefinitionHelper;
+use Exception;
+use Psr\Container\ContainerInterface;
 
 class ContainerFactory
 {
     /**
-     * @var ServiceDefinition
+     * @return ContainerInterface
+     * @throws Exception
      */
-    private const DEFINITIONS = [
-        MongoDefinition::class,
-    ];
+    public function create(): ContainerInterface
+    {
+        return (new ContainerBuilder())
+            ->addDefinitions($this->getDefinitions())
+            ->build();
+    }
 
     /**
      * @return DefinitionHelper[]
      */
-    protected function getProviderDefinitions(): array
+    protected function getDefinitions(): array
     {
-        return array_merge(...array_map(function (ServiceDefinition $definition) {
-            return $definition->getDefinitions();
-        }, $this->getProviders()));
-    }
-
-    /**
-     * @return ServiceDefinition[]
-     */
-    protected function getProviders(): array
-    {
-        return array_map(function (string $definition) {
-            return new $definition();
-        }, self::DEFINITIONS);
+        return array_merge(
+            SlimLoggerDefinition::getDefinitions(),
+            MongoDefinition::getDefinitions(),
+            RepositoryDefinition::getDefinitions(),
+        );
     }
 }

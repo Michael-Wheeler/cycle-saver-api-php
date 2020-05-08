@@ -9,23 +9,14 @@ use MongoDB\Driver\Manager;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Ramsey\Uuid\Uuid;
-use Slim\Logger;
 
 class UserRepository implements UserRepositoryInterface
 {
-    private $manager;
-    private $logger;
+    private Manager $manager;
+    private LoggerInterface $logger;
 
     public function __construct(Manager $manager, LoggerInterface $logger)
     {
-        require __DIR__ . '/../../vendor/autoload.php';
-        $this->logger = new Logger();
-        ini_set('mongodb.debug', 'stderr');
-
-        $username = 'root';
-        $password = 'pass';
-        $this->manager = new Manager("mongodb://${username}:${password}@mongo:27017/");
-
         $this->manager = $manager;
         $this->logger = $logger;
     }
@@ -55,7 +46,7 @@ class UserRepository implements UserRepositoryInterface
 
         try {
             $result = $this->manager->executeBulkWrite('cyclesaver.users', $bulk);
-var_dump('##SUCCESS##');
+            var_dump('##SUCCESS##');
             $this->logger->log(LogLevel::DEBUG, 'Inserted count: ' . $result->getInsertedCount() . "\n");
 
             foreach ($result->getWriteErrors() as $error) {
