@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit bootstrap="src/Application/Bootstrap/bootstrap.php"
+         colors="true"
+         stopOnFailure="false"
+         defaultTestSuite="all"
+>
+    <testsuites>
+        <testsuite name="all">
+            <directory>./tests/</directory>
+        </testsuite>
+
+        <testsuite name="unit">
+            <directory>./tests/unit/</directory>
+        </testsuite>
+
+        <testsuite name="integration">
+            <directory>./tests/integration/</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

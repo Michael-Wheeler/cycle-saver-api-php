@@ -43,7 +43,7 @@ class UserController
         }
 
         return ResponseFactory::createSuccessfulCreationResponse(
-            (object) ['id' => (string) $id],
+            (object) ['id' => $id],
             $response
         );
     }

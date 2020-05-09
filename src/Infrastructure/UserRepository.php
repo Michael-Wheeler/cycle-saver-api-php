@@ -5,7 +5,6 @@ namespace CycleSaver\Infrastructure;
 use CycleSaver\Domain\Entities\User;
 use CycleSaver\Domain\Repository\UserRepositoryInterface;
 use Exception;
-use MongoDB\BSON\ObjectId;
 use MongoDB\Driver\BulkWrite;
 use MongoDB\Driver\Manager;
 use Psr\Log\LoggerInterface;
@@ -23,25 +22,15 @@ class UserRepository implements UserRepositoryInterface
         $this->logger = $logger;
     }
 
-    public function getById(Uuid $id)
-    {
-        // TODO: Implement getById() method.
-    }
-
-    public function getAll()
-    {
-        // TODO: Implement getAll() method.
-    }
-
     /**
      * @param User $user
-     * @return ObjectId
+     * @return string
      * @throws Exception
      */
-    public function save(User $user)
+    public function save(User $user): string
     {
         $userArray = [
-            '_id' => $id = new ObjectId(),
+            '_id' => $id = $user->getId() ?? (string) Uuid::uuid4(),
             'email' => $user->getEmail(),
             'password' => $user->getPassword()
         ];
@@ -51,9 +40,10 @@ class UserRepository implements UserRepositoryInterface
 
         try {
             $this->manager->executeBulkWrite($this->userNamespace, $bulk);
-            return $id;
         } catch (Exception $e) {
             throw new Exception('Could not add user to DB' . $e->getMessage());
         }
+
+        return (string) $id;
     }
 }

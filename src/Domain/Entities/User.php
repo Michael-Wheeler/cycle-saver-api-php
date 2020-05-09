@@ -2,20 +2,20 @@
 
 namespace CycleSaver\Domain\Entities;
 
-use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
 class User
 {
-    private Uuid $id;
+    private UuidInterface $id;
     private string $email;
     private string $password;
 
-    public function getId(): Uuid
+    public function getId(): UuidInterface
     {
         return $this->id;
     }
 
-    public function setId(Uuid $id): self
+    public function setId(UuidInterface $id): self
     {
         $this->id = $id;
         return $this;
@@ -26,7 +26,7 @@ class User
         return $this->email;
     }
 
-    public function setEmail(string $email): User
+    public function setEmail(string $email): self
     {
         $this->email = $email;
         return $this;
@@ -37,7 +37,7 @@ class User
         return $this->password;
     }
 
-    public function setPassword(string $password): User
+    public function setPassword(string $password): self
     {
         $this->password = $password;
         return $this;
