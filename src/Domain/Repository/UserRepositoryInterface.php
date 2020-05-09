@@ -3,6 +3,7 @@
 namespace CycleSaver\Domain\Repository;
 
 use CycleSaver\Domain\Entities\User;
+use Ramsey\Uuid\UuidInterface;
 
 interface UserRepositoryInterface
 {
@@ -10,7 +11,7 @@ interface UserRepositoryInterface
      * @param User $user
      *
      * User ID
-     * @return string
+     * @return UuidInterface
      */
-    public function save(User $user): string;
+    public function save(User $user): UuidInterface;
 }

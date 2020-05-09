@@ -6,19 +6,20 @@ use Ramsey\Uuid\UuidInterface;
 
 class User
 {
-    private UuidInterface $id;
+    private ?UuidInterface $id;
     private string $email;
     private string $password;
 
-    public function getId(): UuidInterface
-    {
-        return $this->id;
-    }
-
-    public function setId(UuidInterface $id): self
+    public function __construct(string $email, string $password, ?UuidInterface $id = null)
     {
         $this->id = $id;
-        return $this;
+        $this->email = $email;
+        $this->password = $password;
+    }
+
+    public function getId(): ?UuidInterface
+    {
+        return $this->id;
     }
 
     public function getEmail(): ?string
@@ -26,20 +27,8 @@ class User
         return $this->email;
     }
 
-    public function setEmail(string $email): self
-    {
-        $this->email = $email;
-        return $this;
-    }
-
     public function getPassword(): ?string
     {
         return $this->password;
-    }
-
-    public function setPassword(string $password): self
-    {
-        $this->password = $password;
-        return $this;
     }
 }

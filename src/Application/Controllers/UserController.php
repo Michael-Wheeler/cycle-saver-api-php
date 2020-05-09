@@ -34,7 +34,7 @@ class UserController
             );
         }
 
-        $user = (new User())->setEmail($body['email'])->setPassword($body['password']);
+        $user = new User($body['email'], $body['password']);
 
         try {
             $id = $this->repository->save($user);
@@ -43,7 +43,7 @@ class UserController
         }
 
         return ResponseFactory::createSuccessfulCreationResponse(
-            (object) ['id' => $id],
+            (object) ['id' => (string) $id],
             $response
         );
     }

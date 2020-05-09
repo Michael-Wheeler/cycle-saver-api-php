@@ -9,6 +9,7 @@ use MongoDB\Driver\BulkWrite;
 use MongoDB\Driver\Manager;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
 class UserRepository implements UserRepositoryInterface
 {
@@ -24,13 +25,13 @@ class UserRepository implements UserRepositoryInterface
 
     /**
      * @param User $user
-     * @return string
+     * @return UuidInterface
      * @throws Exception
      */
-    public function save(User $user): string
+    public function save(User $user): UuidInterface
     {
         $userArray = [
-            '_id' => $id = $user->getId() ?? (string) Uuid::uuid4(),
+            '_id' => $id = $user->getId() ?? Uuid::uuid4(),
             'email' => $user->getEmail(),
             'password' => $user->getPassword()
         ];
@@ -44,6 +45,6 @@ class UserRepository implements UserRepositoryInterface
             throw new Exception('Could not add user to DB' . $e->getMessage());
         }
 
-        return (string) $id;
+        return $id;
     }
 }
