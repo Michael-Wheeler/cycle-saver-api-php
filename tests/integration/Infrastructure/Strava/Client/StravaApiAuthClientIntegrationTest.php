@@ -18,7 +18,7 @@ class StravaApiAuthClientIntegrationTest extends IntegrationTestCase
 
     public function test_getAccessToken_should_call_strava_api_and_parse_auth_tokens()
     {
-        $tokens = $this->authClient->getAccessToken('e2298a240a530ac572295b33957a7e1356cf31ac');
+        $tokens = $this->authClient->authoriseUser('e2298a240a530ac572295b33957a7e1356cf31ac');
 
         $this->assertCount(2, $tokens);
         $this->assertNotNull($tokens['access_token']);

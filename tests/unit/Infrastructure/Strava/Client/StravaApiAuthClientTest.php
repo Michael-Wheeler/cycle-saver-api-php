@@ -2,7 +2,8 @@
 
 namespace CycleSaver\Infrastructure\Strava\Client;
 
-use CycleSaver\Infrastructure\Strava\Exception\StravaClientException;
+use CycleSaver\Domain\Entities\User;
+use CycleSaver\Infrastructure\Strava\Exception\StravaAuthClientException;
 use Exception;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Response;
@@ -10,6 +11,8 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Psr\Cache\CacheItemInterface;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 
 class StravaApiAuthClientTest extends TestCase
@@ -29,6 +32,10 @@ class StravaApiAuthClientTest extends TestCase
      * @var LoggerInterface|ObjectProphecy
      */
     private $logger;
+    /**
+     * @var CacheItemInterface|ObjectProphecy
+     */
+    private $cache;
 
     protected function setUp(): void
     {
@@ -36,11 +43,13 @@ class StravaApiAuthClientTest extends TestCase
         $this->context = $this->prophesize(StravaContext::class);
         $this->httpClient = $this->prophesize(ClientInterface::class);
         $this->logger = $this->prophesize(LoggerInterface::class);
+        $this->cache = $this->prophesize(CacheItemInterface::class);
 
         $this->authClient = new StravaApiAuthClient(
             $this->context->reveal(),
             $this->httpClient->reveal(),
-            $this->logger->reveal()
+            $this->logger->reveal(),
+            $this->cache->reveal()
         );
     }
 
@@ -69,7 +78,7 @@ class StravaApiAuthClientTest extends TestCase
             )
         );
 
-        $tokens = $this->authClient->getAccessToken('63390f47-73a1-47c0-8fbb-f3fa258e62c8');
+        $tokens = $this->authClient->authoriseUser('63390f47-73a1-47c0-8fbb-f3fa258e62c8');
 
         $this->assertEquals('05e6c43c-7751-41f5-be29-7fc6d254f677', $tokens['refresh_token']);
         $this->assertEquals('a5bb054e-5205-41fe-be77-8f6e45e1e4d5', $tokens['access_token']);
@@ -88,9 +97,9 @@ class StravaApiAuthClientTest extends TestCase
         $this->logger->error('Strava auth client error when calling Strava API: error message')
             ->shouldBeCalled();
 
-        $this->expectException(StravaClientException::class);
+        $this->expectException(StravaAuthClientException::class);
         $this->expectExceptionMessage('Strava auth client error when calling Strava API: error message');
-        $this->authClient->getAccessToken('63390f47-73a1-47c0-8fbb-f3fa258e62c8');
+        $this->authClient->authoriseUser('63390f47-73a1-47c0-8fbb-f3fa258e62c8');
     }
 
     public function test_getAuthToken_should_throw_Strava_auth_client_error_if_api_returns_invalid_json()
@@ -112,9 +121,9 @@ class StravaApiAuthClientTest extends TestCase
         $this->logger->error('Strava auth client error: Unable to parse JSON response body')
             ->shouldBeCalled();
 
-        $this->expectException(StravaClientException::class);
+        $this->expectException(StravaAuthClientException::class);
         $this->expectExceptionMessage('Strava auth client error: Unable to parse JSON response body');
-        $this->authClient->getAccessToken('63390f47-73a1-47c0-8fbb-f3fa258e62c8');
+        $this->authClient->authoriseUser('63390f47-73a1-47c0-8fbb-f3fa258e62c8');
     }
 
     public function test_getAuthToken_should_throw_Strava_auth_client_error_if_token_missing_from_response()
@@ -138,9 +147,9 @@ class StravaApiAuthClientTest extends TestCase
         $this->logger->error('Strava auth client error: Response does not contain auth tokens')
             ->shouldBeCalled();
 
-        $this->expectException(StravaClientException::class);
+        $this->expectException(StravaAuthClientException::class);
         $this->expectExceptionMessage('Strava auth client error: Response does not contain auth tokens');
-        $this->authClient->getAccessToken('63390f47-73a1-47c0-8fbb-f3fa258e62c8');
+        $this->authClient->authoriseUser('63390f47-73a1-47c0-8fbb-f3fa258e62c8');
     }
 
     public function authResponseBody()

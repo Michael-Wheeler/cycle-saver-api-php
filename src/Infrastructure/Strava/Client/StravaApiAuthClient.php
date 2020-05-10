@@ -2,9 +2,12 @@
 
 namespace CycleSaver\Infrastructure\Strava\Client;
 
-use CycleSaver\Infrastructure\Strava\Exception\StravaClientException;
+use CycleSaver\Domain\Entities\User;
+use CycleSaver\Infrastructure\Strava\Exception\StravaAuthClientException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Uri;
+use Opia\Hub\Domain\Reward\Processing\NeoCurrency\Exception\NeoCurrencyClientException;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -14,12 +17,57 @@ class StravaApiAuthClient
     private StravaContext $context;
     private ClientInterface $client;
     private LoggerInterface $logger;
+    private CacheItemPoolInterface $cache;
 
-    public function __construct(StravaContext $context, ClientInterface $client, LoggerInterface $logger)
-    {
+
+    public function __construct(
+        StravaContext $context,
+        ClientInterface $client,
+        LoggerInterface $logger,
+        CacheItemPoolInterface $cache
+    ) {
         $this->context = $context;
         $this->client = $client;
         $this->logger = $logger;
+        $this->cache = $cache;
+    }
+
+    /**
+     * @param User $user
+     * @return string
+     */
+    public function getAccessToken(User $user): string
+    {
+        //TODO Implement caching lib
+//        try {
+//            $tokenCache = $this->cache->getItem("strava-access-token-{$user->getId()}");
+//        } catch (InvalidArgumentException $e) {
+//            throw new StravaAuthClientException(
+//                "Unable to retrieve Strava user '{$user->getId()}' access token from cache: {$e->getMessage()}"
+//            );
+//        }
+//
+//        if ($tokenCache->isHit()) {
+//            return $tokenCache->get();
+//        }
+
+        [$accessToken, $refreshToken] = $this->refreshAccessToken($user->getRefreshToken());
+
+        $user->setRefreshToken($refreshToken);
+
+//        $tokenCache->set($accessToken)->expiresAfter(new DateInterval('PT21540S'));
+//        $this->cache->save($tokenCache);
+
+        return $accessToken;
+    }
+
+    /**
+     * @param string $refreshToken
+     * @return string[] [Access Token, Refresh Token]
+     */
+    private function refreshAccessToken(string $refreshToken): array
+    {
+
     }
 
     /**
@@ -27,9 +75,9 @@ class StravaApiAuthClient
      *
      * @param string $authCode
      * @return string[] [Access Token, Refresh Token]
-     * @throws StravaClientException
+     * @throws StravaAuthClientException
      */
-    public function getAccessToken(string $authCode): array
+    public function authoriseUser(string $authCode): array
     {
         $uri = new Uri(rtrim($this->context->getBaseUri(), '/') . '/oauth/token');
 
@@ -48,7 +96,7 @@ class StravaApiAuthClient
             );
         } catch (Throwable $e) {
             $this->logger->error("Strava auth client error when calling Strava API: {$e->getMessage()}");
-            throw new StravaClientException("Strava auth client error when calling Strava API: {$e->getMessage()}");
+            throw new StravaAuthClientException("Strava auth client error when calling Strava API: {$e->getMessage()}");
         }
 
         return $this->parseAuthTokens($response);
@@ -57,7 +105,7 @@ class StravaApiAuthClient
     /**
      * @param ResponseInterface $response
      * @return string[] [Access Token, Refresh Token]
-     * @throws StravaClientException
+     * @throws StravaAuthClientException
      */
     private function parseAuthTokens(ResponseInterface $response): array
     {
@@ -65,14 +113,14 @@ class StravaApiAuthClient
 
         if ($body === null) {
             $this->logger->error('Strava auth client error: Unable to parse JSON response body');
-            throw new StravaClientException(
+            throw new StravaAuthClientException(
                 'Strava auth client error: Unable to parse JSON response body'
             );
         }
 
         if (!isset($body->refresh_token) || !isset($body->access_token)) {
             $this->logger->error('Strava auth client error: Response does not contain auth tokens');
-            throw new StravaClientException(
+            throw new StravaAuthClientException(
                 'Strava auth client error: Response does not contain auth tokens'
             );
         }
