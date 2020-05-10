@@ -4,12 +4,14 @@ namespace CycleSaver\Infrastructure\Strava\Client;
 
 use CycleSaver\Test\IntegrationTestCase;
 
-class StravaApiAuthClientTest extends IntegrationTestCase
+class StravaApiAuthClientIntegrationTest extends IntegrationTestCase
 {
     private StravaApiAuthClient $authClient;
 
     protected function setUp(): void
     {
+        $this->markTestSkipped('No active sandbox environment for Stava integration tests.');
+
         parent::setUp();
         $this->authClient = $this->container->get(StravaApiAuthClient::class);
     }

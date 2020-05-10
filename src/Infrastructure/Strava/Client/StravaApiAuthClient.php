@@ -4,10 +4,10 @@ namespace CycleSaver\Infrastructure\Strava\Client;
 
 use CycleSaver\Infrastructure\Strava\Exception\StravaClientException;
 use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 class StravaApiAuthClient
 {
@@ -46,7 +46,7 @@ class StravaApiAuthClient
                     ]
                 ]
             );
-        } catch (GuzzleException $e) {
+        } catch (Throwable $e) {
             $this->logger->error("Strava auth client error when calling Strava API: {$e->getMessage()}");
             throw new StravaClientException("Strava auth client error when calling Strava API: {$e->getMessage()}");
         }
@@ -64,14 +64,16 @@ class StravaApiAuthClient
         $body = json_decode($response->getBody()->getContents());
 
         if ($body === null) {
+            $this->logger->error('Strava auth client error: Unable to parse JSON response body');
             throw new StravaClientException(
-                "Strava auth client error when calling Strava API: Unable to parse JSON response body"
+                'Strava auth client error: Unable to parse JSON response body'
             );
         }
 
         if (!isset($body->refresh_token) || !isset($body->access_token)) {
+            $this->logger->error('Strava auth client error: Response does not contain auth tokens');
             throw new StravaClientException(
-                "Strava auth client error when calling Strava API: Response does not contain auth tokens"
+                'Strava auth client error: Response does not contain auth tokens'
             );
         }
 
