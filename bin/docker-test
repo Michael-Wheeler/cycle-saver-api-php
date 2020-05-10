@@ -7,4 +7,4 @@ fi
 
 echo "\e[96m\e[1mDocker container running, starting tests\e[0m"
 
-docker run cycle-saver-api-php_php sh bin/test $@
+docker-compose run php vendor/bin/phpunit $@

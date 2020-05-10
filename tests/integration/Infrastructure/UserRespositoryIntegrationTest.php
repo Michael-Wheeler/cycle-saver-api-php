@@ -2,33 +2,31 @@
 
 namespace CycleSaver\Infrastructure;
 
-use CycleSaver\Application\Bootstrap\ContainerFactory;
 use CycleSaver\Domain\Entities\User;
-use MongoDB\Driver\Manager;
-use PHPUnit\Framework\TestCase;
+use CycleSaver\Testing\IntegrationTestCase;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 
-class UserRepositoryIntegrationTest extends TestCase
+class UserRepositoryIntegrationTestCase extends IntegrationTestCase
 {
     private UserRepository $userRepository;
 
     protected function setUp(): void
     {
-        $container = (new ContainerFactory())->create();
-
+        parent::setUp();
         $this->userRepository = new UserRepository(
-            $container->get(Manager::class),
-            $container->get(LoggerInterface::class)
+            $this->DBManager,
+            $this->container->get(LoggerInterface::class)
         );
     }
 
     public function test_saveUser_should_insert_user_to_database_and_return_id_string()
     {
-        $user = (new User())
-            ->setId($id = Uuid::uuid4())
-            ->setEmail('test@test.com')
-            ->setPassword('password');
+        $user = new User(
+            'test@test.com',
+            'password',
+            $id = Uuid::uuid4()
+        );
 
         $retrievedId = $this->userRepository->save($user);
 
