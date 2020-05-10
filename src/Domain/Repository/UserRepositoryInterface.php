@@ -7,11 +7,5 @@ use Ramsey\Uuid\UuidInterface;
 
 interface UserRepositoryInterface
 {
-    /**
-     * @param User $user
-     *
-     * User ID
-     * @return UuidInterface
-     */
     public function save(User $user): UuidInterface;
 }

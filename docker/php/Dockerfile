@@ -3,7 +3,7 @@ WORKDIR /opt
 
 COPY composer.json /opt
 COPY composer.lock /opt
-RUN composer install
+RUN composer install --ignore-platform-reqs
 
 FROM php:7.4-fpm-alpine
 

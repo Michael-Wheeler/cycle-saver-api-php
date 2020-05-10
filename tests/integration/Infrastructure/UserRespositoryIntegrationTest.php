@@ -3,11 +3,11 @@
 namespace CycleSaver\Infrastructure;
 
 use CycleSaver\Domain\Entities\User;
-use CycleSaver\Testing\IntegrationTestCase;
+use CycleSaver\Test\IntegrationTestCase;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 
-class UserRepositoryIntegrationTestCase extends IntegrationTestCase
+class UserRepositoryIntegrationTest extends IntegrationTestCase
 {
     private UserRepository $userRepository;
 

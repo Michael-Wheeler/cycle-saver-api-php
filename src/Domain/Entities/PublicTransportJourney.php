@@ -2,7 +2,11 @@
 
 namespace CycleSaver\Domain\Entities;
 
-interface PublicTransportJourney
-{
+use DatePeriod;
 
+abstract class PublicTransportJourney
+{
+    private float $cost;
+
+    private DatePeriod $duration;
 }

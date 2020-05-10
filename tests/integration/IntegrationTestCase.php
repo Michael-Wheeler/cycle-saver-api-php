@@ -1,6 +1,6 @@
 <?php
 
-namespace CycleSaver\Tests;
+namespace CycleSaver\Test;
 
 use CycleSaver\Application\Bootstrap\ContainerFactory;
 use MongoDB\Driver\BulkWrite;

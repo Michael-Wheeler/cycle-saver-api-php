@@ -2,7 +2,7 @@
 
 namespace CycleSaver\Domain\Entities;
 
-class StravaActivity
+class StravaActivity extends Activity
 {
 
 }

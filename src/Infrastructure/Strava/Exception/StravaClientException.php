@@ -2,7 +2,7 @@
 
 namespace CycleSaver\Infrastructure\Strava;
 
-class StravaClientException
+class StravaClientException extends \Exception
 {
 
 }

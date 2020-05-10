@@ -8,7 +8,6 @@ use CycleSaver\Domain\Repository\UserRepositoryInterface;
 use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Slim\Psr7\Response;
 
 class UserController
 {
@@ -19,7 +18,7 @@ class UserController
         $this->repository = $repository;
     }
 
-    public function createUser(ServerRequestInterface $request, Response $response, $args): ResponseInterface
+    public function createUser(ServerRequestInterface $request, ResponseInterface $response, $args): ResponseInterface
     {
         $body = $request->getParsedBody();
 

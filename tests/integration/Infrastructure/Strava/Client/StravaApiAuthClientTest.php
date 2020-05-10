@@ -2,7 +2,9 @@
 
 namespace CycleSaver\Infrastructure\Strava\Client;
 
-class StravaApiAuthClientTest
+use PHPUnit\Framework\TestCase;
+
+class StravaApiAuthClientTest extends TestCase
 {
 
 }

@@ -9,7 +9,7 @@ use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 
-class StravaAPIAuthClient
+class StravaApiAuthClient
 {
     private StravaContext $context;
     private ClientInterface $client;
