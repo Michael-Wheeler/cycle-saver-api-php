@@ -15,7 +15,7 @@ class MongoDefinition implements ServiceDefinition
                 $password = getenv('MONGO_ADMIN_PASS');
 
                 if (!$username || !$password) {
-                    throw new ContainerException('Unable to retrieve MongoDB Admin username and password');
+                    throw new ContainerException('Unable to retrieve MongoDB environment variables');
                 }
 
                 return new Manager("mongodb://${username}:${password}@mongo:27017/");

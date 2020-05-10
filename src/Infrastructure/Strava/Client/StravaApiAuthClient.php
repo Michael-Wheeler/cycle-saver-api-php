@@ -2,7 +2,7 @@
 
 namespace CycleSaver\Infrastructure\Strava\Client;
 
-use CycleSaver\Infrastructure\Strava\StravaClientException;
+use CycleSaver\Infrastructure\Strava\Exception\StravaClientException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Uri;
@@ -31,14 +31,14 @@ class StravaApiAuthClient
      */
     public function getAccessToken(string $authCode): array
     {
-        $uri = new Uri("https://{$this->context->getBaseUri()}/oauth/token");
+        $uri = new Uri(rtrim($this->context->getBaseUri(), '/') . '/oauth/token');
 
         try {
             $response = $this->client->request(
-                'GET',
+                'POST',
                 $uri,
                 [
-                    'form_params' => [
+                    'query' => [
                         'client_id' => $this->context->getClientId(),
                         'client_secret' => $this->context->getClientSecret(),
                         'code' => $authCode,
@@ -62,6 +62,7 @@ class StravaApiAuthClient
     private function parseAuthTokens(ResponseInterface $response): array
     {
         $body = json_decode($response->getBody()->getContents());
+
         if ($body === null) {
             throw new StravaClientException(
                 "Strava auth client error when calling Strava API: Unable to parse JSON response body"
@@ -74,6 +75,9 @@ class StravaApiAuthClient
             );
         }
 
-        return [$body->access_token, $body->refresh_token];
+        return [
+            'access_token' => $body->access_token,
+            'refresh_token' => $body->refresh_token
+        ];
     }
 }
