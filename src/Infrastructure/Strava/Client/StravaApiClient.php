@@ -6,7 +6,9 @@ use CycleSaver\Domain\Entities\StravaActivity;
 use CycleSaver\Domain\Entities\User;
 use CycleSaver\Infrastructure\Strava\Exception\StravaAuthClientException;
 use CycleSaver\Infrastructure\Strava\Exception\StravaClientException;
+use DateInterval;
 use DateTimeImmutable;
+use Exception;
 use Generator;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Uri;
@@ -105,11 +107,10 @@ class StravaApiClient
         $activities = json_decode($response->getBody()->getContents());
 
         if ($activities === null || !is_array($activities)) {
-            throw new StravaClientException('Strava API has returned an invalid JSON body');
+            throw new StravaClientException('Strava API has returned an invalid response body');
         }
 
         $activities = [];
-
         foreach ($activities as $activity) {
             try {
                 $activities[] = $this->parseActivity($activity);
@@ -125,8 +126,9 @@ class StravaApiClient
     /**
      * @param object $activity
      * @return StravaActivity
+     * @throws InvalidArgumentException
      */
-    private function parseActivity(object $activity): StravaActivity
+    private function parseActivity(object $activity): ?StravaActivity
     {
         if (
             !isset($activity->commute) ||
@@ -140,19 +142,18 @@ class StravaApiClient
         }
 
         if (!$activity->commute) {
-            throw new InvalidArgumentException('Strava activity is missing required field');
+            return null;
         }
 
         $startDate = DateTimeImmutable::createFromFormat(DATE_ISO8601, $activity->start_date_local);
-
-        try {
-            $duration = new \DateInterval("PT{$activity->elapsed_time}S");
-        } catch (\Exception $e) {
-            throw new InvalidArgumentException('Strava activity has invalid duration format');
-        }
-
         if (!$startDate) {
             throw new InvalidArgumentException('Strava activity has invalid start date format');
+        }
+
+        try {
+            $duration = new DateInterval("PT{$activity->elapsed_time}S");
+        } catch (Exception $e) {
+            throw new InvalidArgumentException('Strava activity has invalid duration format');
         }
 
         return new StravaActivity(
