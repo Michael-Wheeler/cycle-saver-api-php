@@ -39,24 +39,24 @@ class StravaApiAuthClient
     public function getAccessToken(User $user): string
     {
         //TODO Implement caching lib
-//        try {
-//            $tokenCache = $this->cache->getItem("strava-access-token-{$user->getId()}");
-//        } catch (InvalidArgumentException $e) {
-//            throw new StravaAuthClientException(
-//                "Unable to retrieve Strava user '{$user->getId()}' access token from cache: {$e->getMessage()}"
-//            );
-//        }
-//
-//        if ($tokenCache->isHit()) {
-//            return $tokenCache->get();
-//        }
+        try {
+            $tokenCache = $this->cache->getItem("strava-access-token-{$user->getId()}");
+        } catch (InvalidArgumentException $e) {
+            throw new StravaAuthClientException(
+                "Unable to retrieve Strava user '{$user->getId()}' access token from cache: {$e->getMessage()}"
+            );
+        }
+
+        if ($tokenCache->isHit()) {
+            return $tokenCache->get();
+        }
 
         [$accessToken, $refreshToken] = $this->refreshAccessToken($user->getRefreshToken());
 
         $user->setRefreshToken($refreshToken);
 
-//        $tokenCache->set($accessToken)->expiresAfter(new DateInterval('PT21540S'));
-//        $this->cache->save($tokenCache);
+        $tokenCache->set($accessToken)->expiresAfter(new DateInterval('PT21540S'));
+        $this->cache->save($tokenCache);
 
         return $accessToken;
     }
