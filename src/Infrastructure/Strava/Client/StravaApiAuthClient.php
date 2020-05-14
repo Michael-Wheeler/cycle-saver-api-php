@@ -6,8 +6,6 @@ use CycleSaver\Domain\Entities\User;
 use CycleSaver\Infrastructure\Strava\Exception\StravaAuthClientException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Uri;
-use Opia\Hub\Domain\Reward\Processing\NeoCurrency\Exception\NeoCurrencyClientException;
-use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -17,57 +15,70 @@ class StravaApiAuthClient
     private StravaContext $context;
     private ClientInterface $client;
     private LoggerInterface $logger;
-    private CacheItemPoolInterface $cache;
-
 
     public function __construct(
         StravaContext $context,
         ClientInterface $client,
-        LoggerInterface $logger,
-        CacheItemPoolInterface $cache
+        LoggerInterface $logger
     ) {
         $this->context = $context;
         $this->client = $client;
         $this->logger = $logger;
-        $this->cache = $cache;
     }
 
     /**
+     * Get access token and update refresh token
+     *
      * @param User $user
      * @return string
+     * @throws StravaAuthClientException
      */
     public function getAccessToken(User $user): string
     {
-        //TODO Implement caching lib
-        try {
-            $tokenCache = $this->cache->getItem("strava-access-token-{$user->getId()}");
-        } catch (InvalidArgumentException $e) {
-            throw new StravaAuthClientException(
-                "Unable to retrieve Strava user '{$user->getId()}' access token from cache: {$e->getMessage()}"
-            );
-        }
-
-        if ($tokenCache->isHit()) {
-            return $tokenCache->get();
+        if ($user->getRefreshToken() === null) {
+            $this->logger->error('User refresh token required to get new Strava access token');
+            throw new StravaAuthClientException('User refresh token required to get new Strava access token');
         }
 
         [$accessToken, $refreshToken] = $this->refreshAccessToken($user->getRefreshToken());
 
         $user->setRefreshToken($refreshToken);
 
-        $tokenCache->set($accessToken)->expiresAfter(new DateInterval('PT21540S'));
-        $this->cache->save($tokenCache);
-
         return $accessToken;
     }
 
     /**
+     * Swap refresh token for access token and new refresh token
+     *
      * @param string $refreshToken
      * @return string[] [Access Token, Refresh Token]
+     * @throws StravaAuthClientException
      */
     private function refreshAccessToken(string $refreshToken): array
     {
+        $uri = new Uri(rtrim($this->context->getBaseUri(), '/') . '/oauth/token');
 
+        try {
+            $response = $this->client->request(
+                'POST',
+                $uri,
+                [
+                    'query' => [
+                        'client_id' => $this->context->getClientId(),
+                        'client_secret' => $this->context->getClientSecret(),
+                        'grant_type' => 'refresh_token',
+                        'refresh_token' => $refreshToken
+                    ]
+                ]
+            );
+        } catch (Throwable $e) {
+            $this->logger->error("Strava auth client error when calling Strava refresh token API: {$e->getMessage()}");
+            throw new StravaAuthClientException(
+                "Strava auth client error when calling Strava refresh token API: {$e->getMessage()}"
+            );
+        }
+
+        return $this->parseAuthTokens($response);
     }
 
     /**
@@ -95,8 +106,10 @@ class StravaApiAuthClient
                 ]
             );
         } catch (Throwable $e) {
-            $this->logger->error("Strava auth client error when calling Strava API: {$e->getMessage()}");
-            throw new StravaAuthClientException("Strava auth client error when calling Strava API: {$e->getMessage()}");
+            $this->logger->error("Strava auth client error when calling Strava auth code API: {$e->getMessage()}");
+            throw new StravaAuthClientException(
+                "Strava auth client error when calling Strava auth code API: {$e->getMessage()}"
+            );
         }
 
         return $this->parseAuthTokens($response);
@@ -125,9 +138,6 @@ class StravaApiAuthClient
             );
         }
 
-        return [
-            'access_token' => $body->access_token,
-            'refresh_token' => $body->refresh_token
-        ];
+        return [$body->access_token, $body->refresh_token];
     }
 }

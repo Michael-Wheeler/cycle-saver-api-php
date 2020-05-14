@@ -11,8 +11,6 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
-use Psr\Cache\CacheItemInterface;
-use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 
 class StravaApiAuthClientTest extends TestCase
@@ -32,10 +30,6 @@ class StravaApiAuthClientTest extends TestCase
      * @var LoggerInterface|ObjectProphecy
      */
     private $logger;
-    /**
-     * @var CacheItemInterface|ObjectProphecy
-     */
-    private $cache;
 
     protected function setUp(): void
     {
@@ -43,17 +37,15 @@ class StravaApiAuthClientTest extends TestCase
         $this->context = $this->prophesize(StravaContext::class);
         $this->httpClient = $this->prophesize(ClientInterface::class);
         $this->logger = $this->prophesize(LoggerInterface::class);
-        $this->cache = $this->prophesize(CacheItemInterface::class);
 
         $this->authClient = new StravaApiAuthClient(
             $this->context->reveal(),
             $this->httpClient->reveal(),
-            $this->logger->reveal(),
-            $this->cache->reveal()
+            $this->logger->reveal()
         );
     }
 
-    public function test_getAuthToken_should_call_strava_and_parse_tokens()
+    public function test_authoriseUser_should_call_strava_and_parse_tokens()
     {
         $this->context->getClientId()->shouldBeCalled()->willReturn('test');
         $this->context->getClientSecret()->shouldBeCalled()->willReturn('886e80d1-4f64-46ad-a509-f2f682665dbf');
@@ -78,13 +70,13 @@ class StravaApiAuthClientTest extends TestCase
             )
         );
 
-        $tokens = $this->authClient->authoriseUser('63390f47-73a1-47c0-8fbb-f3fa258e62c8');
+        [$accessToken, $refreshToken] = $this->authClient->authoriseUser('63390f47-73a1-47c0-8fbb-f3fa258e62c8');
 
-        $this->assertEquals('05e6c43c-7751-41f5-be29-7fc6d254f677', $tokens['refresh_token']);
-        $this->assertEquals('a5bb054e-5205-41fe-be77-8f6e45e1e4d5', $tokens['access_token']);
+        $this->assertEquals('05e6c43c-7751-41f5-be29-7fc6d254f677', $refreshToken);
+        $this->assertEquals('a5bb054e-5205-41fe-be77-8f6e45e1e4d5', $accessToken);
     }
 
-    public function test_getAuthToken_should_throw_Strava_auth_error_if_api_call_fails()
+    public function test_authoriseUser_should_throw_Strava_auth_error_if_api_call_fails()
     {
         $this->context->getClientId()->shouldBeCalled()->willReturn('test');
         $this->context->getClientSecret()->shouldBeCalled()->willReturn('886e80d1-4f64-46ad-a509-f2f682665dbf');
@@ -94,15 +86,15 @@ class StravaApiAuthClientTest extends TestCase
             ->shouldBeCalled()
             ->willThrow(new Exception('error message'));
 
-        $this->logger->error('Strava auth client error when calling Strava API: error message')
+        $this->logger->error('Strava auth client error when calling Strava auth code API: error message')
             ->shouldBeCalled();
 
         $this->expectException(StravaAuthClientException::class);
-        $this->expectExceptionMessage('Strava auth client error when calling Strava API: error message');
+        $this->expectExceptionMessage('Strava auth client error when calling Strava auth code API: error message');
         $this->authClient->authoriseUser('63390f47-73a1-47c0-8fbb-f3fa258e62c8');
     }
 
-    public function test_getAuthToken_should_throw_Strava_auth_client_error_if_api_returns_invalid_json()
+    public function test_authoriseUser_should_throw_Strava_auth_client_error_if_api_returns_invalid_json()
     {
         $this->context->getClientId()->shouldBeCalled()->willReturn('test');
         $this->context->getClientSecret()->shouldBeCalled()->willReturn('886e80d1-4f64-46ad-a509-f2f682665dbf');
@@ -126,7 +118,7 @@ class StravaApiAuthClientTest extends TestCase
         $this->authClient->authoriseUser('63390f47-73a1-47c0-8fbb-f3fa258e62c8');
     }
 
-    public function test_getAuthToken_should_throw_Strava_auth_client_error_if_token_missing_from_response()
+    public function test_authoriseUser_should_throw_Strava_auth_client_error_if_token_missing_from_response()
     {
         $this->context->getClientId()->shouldBeCalled()->willReturn('test');
         $this->context->getClientSecret()->shouldBeCalled()->willReturn('886e80d1-4f64-46ad-a509-f2f682665dbf');
@@ -150,6 +142,131 @@ class StravaApiAuthClientTest extends TestCase
         $this->expectException(StravaAuthClientException::class);
         $this->expectExceptionMessage('Strava auth client error: Response does not contain auth tokens');
         $this->authClient->authoriseUser('63390f47-73a1-47c0-8fbb-f3fa258e62c8');
+    }
+
+    public function test_getAccessToken_should_call_strava_with_refresh_token_and_update_user()
+    {
+        $user = new User('test@test.com', 'password', null, 'oldToken');
+
+        $this->context->getClientId()->shouldBeCalled()->willReturn('test');
+        $this->context->getClientSecret()->shouldBeCalled()->willReturn('886e80d1-4f64-46ad-a509-f2f682665dbf');
+        $this->context->getBaseUri()->shouldBeCalled()->willReturn('https://www.strava.com/api/v3/');
+
+        $this->httpClient->request(
+            'POST',
+            'https://www.strava.com/api/v3/oauth/token',
+            [
+                'query' => [
+                    'client_id' => 'test',
+                    'client_secret' => '886e80d1-4f64-46ad-a509-f2f682665dbf',
+                    'grant_type' => 'refresh_token',
+                    'refresh_token' => 'oldToken'
+                ]
+            ]
+        )->shouldBeCalled()->willReturn(
+            new Response(
+                200,
+                ['Content-Type' => 'application/json; charset=utf-8'],
+                json_encode((object) [
+                    "token_type" => "Bearer",
+                    "expires_at" => 1589153055,
+                    "expires_in" => 21600,
+                    "refresh_token" => "refreshToken",
+                    "access_token" => "accessToken",
+                ])
+            )
+        );
+
+        $token = $this->authClient->getAccessToken($user);
+
+        $this->assertEquals('accessToken', $token);
+        $this->assertEquals('refreshToken', $user->getRefreshToken());
+    }
+
+    public function test_getAccessToken_should_throw_Strava_auth_error_if_user_missing_refresh_token()
+    {
+        $user = new User('test@test.com', 'password', null, null);
+
+        $this->logger->error('User refresh token required to get new Strava access token')
+            ->shouldBeCalled();
+
+        $this->expectException(StravaAuthClientException::class);
+        $this->expectExceptionMessage('User refresh token required to get new Strava access token');
+        $this->authClient->getAccessToken($user);
+    }
+
+    public function test_getAccessToken_should_throw_Strava_auth_error_if_api_call_fails()
+    {
+        $user = new User('test@test.com', 'password', null, 'oldToken');
+
+        $this->context->getClientId()->shouldBeCalled()->willReturn('test');
+        $this->context->getClientSecret()->shouldBeCalled()->willReturn('886e80d1-4f64-46ad-a509-f2f682665dbf');
+        $this->context->getBaseUri()->shouldBeCalled()->willReturn('https://www.strava.com/api/v3/');
+
+        $this->httpClient->request(Argument::any(), Argument::any(), Argument::any())
+            ->shouldBeCalled()
+            ->willThrow(new Exception('error message'));
+
+        $this->logger->error('Strava auth client error when calling Strava refresh token API: error message')
+            ->shouldBeCalled();
+
+        $this->expectException(StravaAuthClientException::class);
+        $this->expectExceptionMessage('Strava auth client error when calling Strava refresh token API: error message');
+        $this->authClient->getAccessToken($user);
+    }
+
+    public function test_getAccessToken_should_throw_Strava_auth_client_error_if_api_returns_invalid_json()
+    {
+        $user = new User('test@test.com', 'password', null, 'oldToken');
+
+        $this->context->getClientId()->shouldBeCalled()->willReturn('test');
+        $this->context->getClientSecret()->shouldBeCalled()->willReturn('886e80d1-4f64-46ad-a509-f2f682665dbf');
+        $this->context->getBaseUri()->shouldBeCalled()->willReturn('https://www.strava.com/api/v3/');
+
+        $this->httpClient->request(Argument::any(), Argument::any(), Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(
+                new Response(
+                    200,
+                    ['Content-Type' => 'application/json; charset=utf-8'],
+                    'invalid'
+                )
+            );
+
+        $this->logger->error('Strava auth client error: Unable to parse JSON response body')
+            ->shouldBeCalled();
+
+        $this->expectException(StravaAuthClientException::class);
+        $this->expectExceptionMessage('Strava auth client error: Unable to parse JSON response body');
+        $this->authClient->getAccessToken($user);
+    }
+
+    public function test_getAccessToken_should_throw_Strava_auth_client_error_if_token_missing_from_response()
+    {
+        $user = new User('test@test.com', 'password', null, 'oldToken');
+
+        $this->context->getClientId()->shouldBeCalled()->willReturn('test');
+        $this->context->getClientSecret()->shouldBeCalled()->willReturn('886e80d1-4f64-46ad-a509-f2f682665dbf');
+        $this->context->getBaseUri()->shouldBeCalled()->willReturn('https://www.strava.com/api/v3/');
+
+        $this->httpClient->request(Argument::any(), Argument::any(), Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(
+                new Response(
+                    200,
+                    ['Content-Type' => 'application/json; charset=utf-8'],
+                    json_encode((object) [
+                        "access_token" => "a5bb054e-5205-41fe-be77-8f6e45e1e4d5",
+                    ])
+                )
+            );
+
+        $this->logger->error('Strava auth client error: Response does not contain auth tokens')
+            ->shouldBeCalled();
+
+        $this->expectException(StravaAuthClientException::class);
+        $this->expectExceptionMessage('Strava auth client error: Response does not contain auth tokens');
+        $this->authClient->getAccessToken($user);
     }
 
     public function authResponseBody()
