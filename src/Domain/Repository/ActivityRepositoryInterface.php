@@ -4,7 +4,7 @@ namespace CycleSaver\Domain\Repository;
 
 use CycleSaver\Domain\Entities\Activity;
 
-interface ActivityRepository
+interface ActivityRepositoryInterface
 {
     /**
      * @return Activity[]

@@ -3,9 +3,9 @@
 namespace CycleSaver\Infrastructure;
 
 use CycleSaver\Domain\Entities\Activity;
-use CycleSaver\Domain\Repository\ActivityRepository;
+use CycleSaver\Domain\Repository\ActivityRepositoryInterface;
 
-class StravaActivityRepository implements ActivityRepository
+class StravaActivityRepositoryInterface implements ActivityRepositoryInterface
 {
     public function getActivities(): array
     {
