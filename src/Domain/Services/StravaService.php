@@ -35,7 +35,7 @@ class StravaService
      */
     public function newUser(string $authCode)
     {
-        $user = new User(Uuid::uuid4());
+        $user = new User($userId = Uuid::uuid4());
 
         [$accessToken, $refreshToken] = $this->stravaRepo->authoriseUser($authCode);
 
@@ -44,7 +44,7 @@ class StravaService
         $activities = $this->stravaRepo->getActivities($accessToken);
 
         foreach ($activities as $activity) {
-            $this->activityRepo->saveActivity($activity->setUserId($id));
+            $this->activityRepo->saveActivity($activity->setUserId($userId));
         }
 
         return $user->getId();

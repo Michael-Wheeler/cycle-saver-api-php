@@ -8,6 +8,7 @@ use CycleSaver\Application\Bootstrap\Definitions\RepositoryDefinition;
 use CycleSaver\Application\Bootstrap\Definitions\SlimLoggerDefinition;
 use CycleSaver\Application\Bootstrap\Definitions\StravaInfrastructureDefinition;
 use CycleSaver\Application\Bootstrap\Definitions\StravaServiceDefinition;
+use CycleSaver\Application\Bootstrap\Definitions\TflDefinition;
 use DI\ContainerBuilder;
 use DI\Definition\Helper\DefinitionHelper;
 use Exception;
@@ -38,6 +39,7 @@ class ContainerFactory
             StravaInfrastructureDefinition::getDefinitions(),
             HttpClientDefinition::getDefinitions(),
             StravaServiceDefinition::getDefinitions(),
+            TflDefinition::getDefinitions(),
         );
     }
 }

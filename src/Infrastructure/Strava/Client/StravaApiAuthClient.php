@@ -2,7 +2,6 @@
 
 namespace CycleSaver\Infrastructure\Strava\Client;
 
-use CycleSaver\Domain\Entities\User;
 use CycleSaver\Infrastructure\Strava\Exception\StravaAuthClientException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Uri;
