@@ -6,7 +6,8 @@ use CycleSaver\Application\Bootstrap\Definitions\HttpClientDefinition;
 use CycleSaver\Application\Bootstrap\Definitions\MongoDefinition;
 use CycleSaver\Application\Bootstrap\Definitions\RepositoryDefinition;
 use CycleSaver\Application\Bootstrap\Definitions\SlimLoggerDefinition;
-use CycleSaver\Application\Bootstrap\Definitions\StravaDefinition;
+use CycleSaver\Application\Bootstrap\Definitions\StravaInfrastructureDefinition;
+use CycleSaver\Application\Bootstrap\Definitions\StravaServiceDefinition;
 use DI\ContainerBuilder;
 use DI\Definition\Helper\DefinitionHelper;
 use Exception;
@@ -34,8 +35,9 @@ class ContainerFactory
             SlimLoggerDefinition::getDefinitions(),
             MongoDefinition::getDefinitions(),
             RepositoryDefinition::getDefinitions(),
-            StravaDefinition::getDefinitions(),
+            StravaInfrastructureDefinition::getDefinitions(),
             HttpClientDefinition::getDefinitions(),
+            StravaServiceDefinition::getDefinitions(),
         );
     }
 }

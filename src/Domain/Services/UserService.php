@@ -13,9 +13,4 @@ class UserService
     {
         $this->userRepository = $userRepository;
     }
-
-    public function saveUser(User $user): string
-    {
-        return $this->userRepository->save($user);
-    }
 }

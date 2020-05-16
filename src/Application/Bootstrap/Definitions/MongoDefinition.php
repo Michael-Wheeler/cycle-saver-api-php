@@ -3,6 +3,8 @@
 namespace CycleSaver\Application\Bootstrap\Definitions;
 
 use CycleSaver\Application\Bootstrap\ContainerException;
+use DI\Container;
+use MongoDB\Database;
 use MongoDB\Driver\Manager;
 
 class MongoDefinition implements ServiceDefinition
@@ -19,7 +21,19 @@ class MongoDefinition implements ServiceDefinition
                 }
 
                 return new Manager("mongodb://${username}:${password}@mongo:27017/");
-            }
+            },
+            Database::class => function (Container $c) {
+                $manager = $c->get(Manager::class);
+
+                if (!$username || !$password) {
+                    throw new ContainerException('Unable to retrieve MongoDB dependencies');
+                }
+
+                return new Database(
+                    $manager,
+                    'cyclesaver'
+                );
+            },
         ];
     }
 }

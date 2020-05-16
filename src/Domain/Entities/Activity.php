@@ -41,9 +41,15 @@ abstract class Activity
         return $this->id;
     }
 
+    public function setUserId(UuidInterface $userId): self
+    {
+        $this->userId = $userId;
+        return $this;
+    }
+
     public function getUserId(): ?UuidInterface
     {
-        return $this->getUserId();
+        return $this->userId;
     }
 
     public function getStartLatLong(): array

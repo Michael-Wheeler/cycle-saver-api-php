@@ -2,14 +2,14 @@
 
 namespace CycleSaver\Infrastructure\Strava\Client;
 
-use CycleSaver\Domain\Entities\User;
+use CycleSaver\Infrastructure\Strava\Exception\StravaClientException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Psr\Log\LoggerInterface;
-use Ramsey\Uuid\Uuid;
 
 class StravaApiClientTest extends TestCase
 {
@@ -51,25 +51,14 @@ class StravaApiClientTest extends TestCase
 
     public function test_getActivities_should_call_strava_api_and_return_parsed_activities()
     {
-        $this->context->getClientId()->shouldBeCalled()->willReturn('test');
-        $this->context->getClientSecret()->shouldBeCalled()->willReturn('886e80d1-4f64-46ad-a509-f2f682665dbf');
         $this->context->getBaseUri()->shouldBeCalled()->willReturn('https://www.strava.com/api/v3/');
-
-        $user = new User(
-            'test@test.com',
-            'password',
-            $id = Uuid::uuid4(),
-            '1234'
-        );
-
-        $this->authClient->getAccessToken($user)->shouldBeCalled()->willReturn('22222');
 
         $this->httpClient->request(
             'GET',
             'https://www.strava.com/api/v3/activities',
             [
                 'query' => ['page' => 1],
-                'parameters' => ['Authorization' => 'bearer 22222']
+                'headers' => ['Authorization' => 'Bearer 22222']
             ]
         )->shouldBeCalled()->willReturn(
             new Response(
@@ -84,7 +73,7 @@ class StravaApiClientTest extends TestCase
             'https://www.strava.com/api/v3/activities',
             [
                 'query' => ['page' => 2],
-                'parameters' => ['Authorization' => 'bearer 22222']
+                'headers' => ['Authorization' => 'Bearer 22222']
             ]
         )->shouldBeCalled()->willReturn(
             new Response(
@@ -94,7 +83,7 @@ class StravaApiClientTest extends TestCase
             )
         );
 
-        $activities = $this->client->getActivities($user);
+        $activities = $this->client->getActivities('22222');
 
         $this->assertCount(1, $activities);
         $this->assertEquals([54.97, -1.59], $activities[0]->getStartLatLong());
@@ -102,6 +91,205 @@ class StravaApiClientTest extends TestCase
         $this->assertEquals(new \DateTimeImmutable('2020-03-27T13:18:03'), $activities[0]->getStartDate());
         $this->assertEquals(7152, $activities[0]->getDuration()->s);
         $this->assertEquals(36264, $activities[0]->getDistance());
+    }
+
+    public function test_getActivities_should_call_strava_api_and_return_parsed_activities_from_multiple_pages()
+    {
+        $this->context->getBaseUri()->shouldBeCalled()->willReturn('https://www.strava.com/api/v3/');
+
+        $commuteBody = json_encode(
+            [
+                (object) [
+                    "distance" => 36264.4,
+                    "elapsed_time" => 7152,
+                    "start_date" => "2020-03-27T13:18:03Z",
+                    "start_date_local" => "2020-03-27T13:18:03Z",
+                    "start_latlng" => [
+                        54.97,
+                        -1.59
+                    ],
+                    "end_latlng" => [
+                        54.97,
+                        -1.59
+                    ],
+                    "commute" => true,
+                ],
+            ]
+        );
+
+        $this->httpClient->request(
+            'GET',
+            'https://www.strava.com/api/v3/activities',
+            [
+                'query' => ['page' => 1],
+                'headers' => ['Authorization' => 'Bearer 22222']
+            ]
+        )->shouldBeCalled()->willReturn(
+            new Response(
+                200,
+                ['Content-Type' => 'application/json; charset=utf-8'],
+                $commuteBody
+            )
+        );
+
+        $this->httpClient->request(
+            'GET',
+            'https://www.strava.com/api/v3/activities',
+            [
+                'query' => ['page' => 2],
+                'headers' => ['Authorization' => 'Bearer 22222']
+            ]
+        )->shouldBeCalled()->willReturn(
+            new Response(
+                200,
+                ['Content-Type' => 'application/json; charset=utf-8'],
+                $commuteBody
+            )
+        );
+
+        $this->httpClient->request(
+            'GET',
+            'https://www.strava.com/api/v3/activities',
+            [
+                'query' => ['page' => 3],
+                'headers' => ['Authorization' => 'Bearer 22222']
+            ]
+        )->shouldBeCalled()->willReturn(
+            new Response(
+                200,
+                ['Content-Type' => 'application/json; charset=utf-8'],
+                json_encode([])
+            )
+        );
+
+        $activities = $this->client->getActivities('22222');
+
+        $this->assertCount(2, $activities);
+    }
+
+    public function test_getActivities_should_throw_StravaClientException_if_strava_returns_invalid_body()
+    {
+        $this->context->getBaseUri()->shouldBeCalled()->willReturn('https://www.strava.com/api/v3/');
+
+        $this->httpClient->request(Argument::any(), Argument::any(), Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(
+                new Response(
+                    200,
+                    ['Content-Type' => 'application/json; charset=utf-8'],
+                    null
+                )
+            );
+
+        $this->logger->error('Strava client was unable to parse activities response: ' .
+            'Response body is not in an array format')
+            ->shouldBeCalled();
+
+        $this->expectException(StravaClientException::class);
+        $this->expectExceptionMessage('Strava client was unable to parse activities response: ' .
+            'Response body is not in an array format');
+
+        $this->client->getActivities('22222');
+    }
+
+    public function test_getActivities_should_skip_invalid_activity_and_log_error()
+    {
+        $this->context->getBaseUri()->shouldBeCalled()->willReturn('https://www.strava.com/api/v3/');
+
+        $this->httpClient->request(Argument::any(), Argument::any(), Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(
+                new Response(
+                    200,
+                    ['Content-Type' => 'application/json; charset=utf-8'],
+                    json_encode([(object) ['invalid' => 'invalid']])
+                )
+            );
+
+        $this->logger->error('Unable to parse Strava activity: Strava activity is missing required field')
+            ->shouldBeCalled();
+
+        $activities = $this->client->getActivities('22222');
+
+        $this->assertEmpty($activities);
+    }
+
+    public function test_getActivities_should_skip_activity_with_invalid_start_date_and_log_error()
+    {
+        $this->context->getBaseUri()->shouldBeCalled()->willReturn('https://www.strava.com/api/v3/');
+
+        $this->httpClient->request(Argument::any(), Argument::any(), Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(
+                new Response(
+                    200,
+                    ['Content-Type' => 'application/json; charset=utf-8'],
+                    json_encode(
+                        [
+                            (object) [
+                                "distance" => 36264.4,
+                                "elapsed_time" => 7152,
+                                "start_date_local" => "invalid",
+                                "start_latlng" => [
+                                    54.97,
+                                    -1.59
+                                ],
+                                "end_latlng" => [
+                                    54.97,
+                                    -1.59
+                                ],
+                                "commute" => true,
+                            ],
+                        ]
+                    )
+                )
+            );
+
+        $this->logger->error('Unable to parse Strava activity: Invalid start date format')
+            ->shouldBeCalled();
+
+        $activities = $this->client->getActivities('22222');
+
+        $this->assertEmpty($activities);
+    }
+
+    public function test_getActivities_should_skip_activity_with_invalid_duration_and_log_error()
+    {
+        $this->context->getBaseUri()->shouldBeCalled()->willReturn('https://www.strava.com/api/v3/');
+
+        $this->httpClient->request(Argument::any(), Argument::any(), Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(
+                new Response(
+                    200,
+                    ['Content-Type' => 'application/json; charset=utf-8'],
+                    json_encode(
+                        [
+                            (object) [
+                                "distance" => 36264.4,
+                                "elapsed_time" => 'invalid',
+                                "start_date_local" => "2020-03-27T13:18:03Z",
+                                "start_latlng" => [
+                                    54.97,
+                                    -1.59
+                                ],
+                                "end_latlng" => [
+                                    54.97,
+                                    -1.59
+                                ],
+                                "commute" => true,
+                            ],
+                        ]
+                    )
+                )
+            );
+
+        $this->logger->error('Unable to parse Strava activity: Invalid duration format')
+            ->shouldBeCalled();
+
+        $activities = $this->client->getActivities('22222');
+
+        $this->assertEmpty($activities);
     }
 
     private function activityResponse()

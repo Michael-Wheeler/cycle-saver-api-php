@@ -2,8 +2,9 @@
 
 namespace CycleSaver\Infrastructure;
 
-use CycleSaver\Domain\Entities\User;
+use CycleSaver\Domain\Entities\Activity;
 use CycleSaver\Domain\Repository\ActivityRepositoryInterface;
+use Exception;
 use MongoDB\Driver\BulkWrite;
 use MongoDB\Driver\Manager;
 use Psr\Log\LoggerInterface;
@@ -28,25 +29,30 @@ class ActivityRepository implements ActivityRepositoryInterface
     }
 
     /**
-     * @param User $user
+     * @param Activity $activity
      * @return UuidInterface
      * @throws Exception
      */
-    public function save(User $user): UuidInterface
+    public function saveActivity(Activity $activity): UuidInterface
     {
-        $userArray = [
-            '_id' => $id = $user->getId() ?? Uuid::uuid4(),
-            'email' => $user->getEmail(),
-            'password' => $user->getPassword()
+        $id = $activity->getId() ?? Uuid::uuid4();
+
+        $activityArray = [
+            '_id' => (string) $id,
+            'start_latlng' => $activity->getStartLatLong(),
+            'end_latlng' => $activity->getEndLatLong(),
+            'start_date' => $activity->getStartDate(),
+            'duration' => $activity->getDuration(),
+            'user_id' => $activity->getUserId() ?? Uuid::uuid4()
         ];
 
         $bulk = new BulkWrite();
-        $bulk->insert($userArray);
+        $bulk->insert($activityArray);
 
         try {
             $this->manager->executeBulkWrite($this->userNamespace, $bulk);
         } catch (Exception $e) {
-            throw new Exception('Could not add user to DB' . $e->getMessage());
+            throw new Exception('Could not add activity to DB' . $e->getMessage());
         }
 
         return $id;

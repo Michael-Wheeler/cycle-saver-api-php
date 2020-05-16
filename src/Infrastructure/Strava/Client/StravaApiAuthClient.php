@@ -29,22 +29,15 @@ class StravaApiAuthClient
     /**
      * Get access token and update refresh token
      *
-     * @param User $user
-     * @return string
+     * @param string $refreshToken
+     * @return string[] [Access Token, Refresh Token]
      * @throws StravaAuthClientException
      */
-    public function getAccessToken(User $user): string
+    public function getAccessToken(string $refreshToken): array
     {
-        if ($user->getRefreshToken() === null) {
-            $this->logger->error('User refresh token required to get new Strava access token');
-            throw new StravaAuthClientException('User refresh token required to get new Strava access token');
-        }
+        // Caching goes here
 
-        [$accessToken, $refreshToken] = $this->refreshAccessToken($user->getRefreshToken());
-
-        $user->setRefreshToken($refreshToken);
-
-        return $accessToken;
+        return $this->refreshAccessToken($refreshToken);
     }
 
     /**

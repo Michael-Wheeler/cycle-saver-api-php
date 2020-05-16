@@ -3,13 +3,10 @@
 namespace CycleSaver\Infrastructure\Strava\Client;
 
 use CycleSaver\Domain\Entities\StravaActivity;
-use CycleSaver\Domain\Entities\User;
-use CycleSaver\Infrastructure\Strava\Exception\StravaAuthClientException;
 use CycleSaver\Infrastructure\Strava\Exception\StravaClientException;
 use DateInterval;
 use DateTimeImmutable;
 use Exception;
-use Generator;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Uri;
 use InvalidArgumentException;
@@ -37,52 +34,68 @@ class StravaApiClient
     }
 
     /**
-     * @param User $user
-     * @param int $page
-     * @return Generator|StravaActivity[]
-     * @throws StravaAuthClientException
+     * @param string $accessToken
+     * @return StravaActivity[]
      * @throws StravaClientException
      */
-    public function getActivities(User $user, int $page = 1): Generator
+    public function getActivities(string $accessToken): array
+    {
+        $totalActivities = [];
+        $page = 1;
+        do {
+            $activities = $this->makeActivitiesRequest($accessToken, $page);
+            $count = count($activities);
+
+            $totalActivities = array_merge($totalActivities, $activities);
+
+            $page++;
+        } while ($count !== 0);
+
+        return $totalActivities;
+    }
+
+    /**
+     * @param string $accessToken
+     * @param int $page
+     * @return StravaActivity[]
+     * @throws StravaClientException
+     */
+    private function makeActivitiesRequest(string $accessToken, int $page = 1): array
     {
         $response = $this->makeRequest(
             'GET',
             '/activities',
-            $user,
+            $accessToken,
             ['query' => ['page' => $page]]
         );
 
-        $activities = $this->parseActivitiesResponse($response);
-
-        foreach ($activities as $activity) {
-            yield $activity;
-        }
-
-        while ($activities !== []) {
-            $this->getActivities($user, $page++);
+        try {
+            return $this->parseActivitiesResponse($response);
+        } catch (InvalidArgumentException $e) {
+            $this->logger->error("Strava client was unable to parse activities response: {$e->getMessage()}");
+            throw new StravaClientException(
+                "Strava client was unable to parse activities response: {$e->getMessage()}"
+            );
         }
     }
 
     /**
      * @param string $method
      * @param string $path
-     * @param User $user
+     * @param string $accessToken
      * @param array|null $options
      * @return ResponseInterface
-     * @throws StravaAuthClientException
      * @throws StravaClientException
      */
     private function makeRequest(
         string $method,
         string $path,
-        User $user,
+        string $accessToken,
         array $options = null
     ): ResponseInterface {
-        $accessToken = $this->authClient->getAccessToken($user);
-
         $uri = new Uri(rtrim($this->context->getBaseUri(), '/') . $path);
 
-        $options['parameters'] = ['Authorization' => 'bearer ' . $accessToken];
+        $options['headers'] = ['Authorization' => 'Bearer ' . $accessToken];
 
         try {
             return $this->client->request(
@@ -91,6 +104,7 @@ class StravaApiClient
                 $options
             );
         } catch (Throwable $e) {
+            $this->logger->error("Strava client error when calling Strava API: {$e->getMessage()}");
             throw new StravaClientException(
                 "Strava client error when calling Strava API: {$e->getMessage()}"
             );
@@ -100,18 +114,17 @@ class StravaApiClient
     /**
      * @param ResponseInterface $response
      * @return StravaActivity[]
-     * @throws StravaClientException
      */
     private function parseActivitiesResponse(ResponseInterface $response): array
     {
-        $activities = json_decode($response->getBody()->getContents());
+        $activitiesBody = json_decode($response->getBody()->getContents());
 
-        if ($activities === null || !is_array($activities)) {
-            throw new StravaClientException('Strava API has returned an invalid response body');
+        if ($activitiesBody === null || !is_array($activitiesBody)) {
+            throw new InvalidArgumentException('Response body is not in an array format');
         }
 
         $activities = [];
-        foreach ($activities as $activity) {
+        foreach ($activitiesBody as $activity) {
             try {
                 $activities[] = $this->parseActivity($activity);
             } catch (InvalidArgumentException $e) {
@@ -120,13 +133,12 @@ class StravaApiClient
             }
         }
 
-        return $activities;
+        return array_filter($activities);
     }
 
     /**
      * @param object $activity
      * @return StravaActivity
-     * @throws InvalidArgumentException
      */
     private function parseActivity(object $activity): ?StravaActivity
     {
@@ -147,13 +159,13 @@ class StravaApiClient
 
         $startDate = DateTimeImmutable::createFromFormat(DATE_ISO8601, $activity->start_date_local);
         if (!$startDate) {
-            throw new InvalidArgumentException('Strava activity has invalid start date format');
+            throw new InvalidArgumentException('Invalid start date format');
         }
 
         try {
             $duration = new DateInterval("PT{$activity->elapsed_time}S");
         } catch (Exception $e) {
-            throw new InvalidArgumentException('Strava activity has invalid duration format');
+            throw new InvalidArgumentException('Invalid duration format');
         }
 
         return new StravaActivity(
@@ -161,7 +173,8 @@ class StravaApiClient
             $activity->end_latlng,
             $startDate,
             $duration,
-            floor($activity->distance)
+            floor($activity->distance),
+            null
         );
     }
 }

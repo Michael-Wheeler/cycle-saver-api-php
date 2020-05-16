@@ -64,8 +64,13 @@ class ShutdownHandler
             }
 
             $exception = new HttpInternalServerErrorException($this->request, $message);
-            $response = $this->errorHandler->__invoke($this->request, $exception, $this->displayErrorDetails, false,
-                false);
+            $response = $this->errorHandler->__invoke(
+                $this->request,
+                $exception,
+                $this->displayErrorDetails,
+                true,
+                true
+            );
 
             if (ob_get_length()) {
                 ob_clean();

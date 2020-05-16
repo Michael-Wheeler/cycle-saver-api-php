@@ -18,5 +18,5 @@ $app->addRoutingMiddleware();
  */
 //TODO make display error details env variable
 //TODO Decide if we want or need this middleware or if there is an alternative
-$errorMiddleware = $app->addErrorMiddleware($displayErrorDetails, false, false);
+$errorMiddleware = $app->addErrorMiddleware($displayErrorDetails, true, true);
 $errorMiddleware->setDefaultErrorHandler($errorHandler);

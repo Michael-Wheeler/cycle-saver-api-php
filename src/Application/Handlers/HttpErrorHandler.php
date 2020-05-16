@@ -59,13 +59,16 @@ class HttpErrorHandler extends ErrorHandler
 
         $error = [
             'status' => 'FAILED',
-            'data' => [
-                'message' => "{$type}: {$description}"
+            'data' => (object) [
+                'message' => "{$type}: {$description}",
+                'trace' => "{$exception->getTraceAsString()}"
             ],
         ];
 
+
         $response = $this->responseFactory->createResponse($statusCode);
         $response->getBody()->write(json_encode($error));
+        $response->withHeader('Content-Type', 'application/json');
 
         return $response;
     }

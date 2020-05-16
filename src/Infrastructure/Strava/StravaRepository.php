@@ -1,10 +1,13 @@
 <?php
 
-namespace CycleSaver\Infrastructure;
+namespace CycleSaver\Infrastructure\Strava;
 
+use CycleSaver\Domain\Entities\Activity;
+use CycleSaver\Domain\Entities\User;
 use CycleSaver\Infrastructure\Strava\Client\StravaApiAuthClient;
 use CycleSaver\Infrastructure\Strava\Client\StravaApiClient;
 use CycleSaver\Infrastructure\Strava\Exception\StravaAuthClientException;
+use CycleSaver\Infrastructure\Strava\Exception\StravaClientException;
 
 class StravaRepository
 {
@@ -18,13 +21,33 @@ class StravaRepository
     }
 
     /**
+     * Swap authorisation code for access token and refresh token
+     *
      * @param string $authCode
+     * @return string[] [Access Token, Refresh Token]
      * @throws StravaAuthClientException
      */
-    public function newUser(string $authCode)
+    public function authoriseUser(string $authCode): array
     {
-        $this->authClient->authoriseUser($authCode);
+        return $this->authClient->authoriseUser($authCode);
+    }
 
-        $this->client->getActivities();
+    /**
+     * @param string $refreshToken
+     * @throws StravaAuthClientException
+     */
+    public function refreshAccessToken(string $refreshToken)
+    {
+        [$accessToken, $refreshToken] = $this->authClient->getAccessToken($refreshToken);
+    }
+
+    /**
+     * @param string $accessToken
+     * @return Activity[]
+     * @throws StravaClientException
+     */
+    public function getActivities(string $accessToken): array
+    {
+        return $this->client->getActivities($accessToken);
     }
 }

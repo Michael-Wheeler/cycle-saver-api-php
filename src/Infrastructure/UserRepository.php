@@ -30,9 +30,11 @@ class UserRepository implements UserRepositoryInterface
      */
     public function save(User $user): UuidInterface
     {
+        $id = $user->getId() ?? Uuid::uuid4();
+
         $userArray = [
-            '_id' => $id = $user->getId() ?? Uuid::uuid4(),
-            'email' => $user->getEmail(),
+            '_id' => (string) $id,
+            'email' => $user->getEmail() ?? null,
             'password' => $user->getPassword()
         ];
 

@@ -4,6 +4,7 @@ namespace CycleSaver\Infrastructure\Strava\Client;
 
 use CycleSaver\Domain\Entities\User;
 use CycleSaver\Test\IntegrationTestCase;
+use Ramsey\Uuid\Uuid;
 
 class StravaApiAuthClientIntegrationTest extends IntegrationTestCase
 {
@@ -19,21 +20,23 @@ class StravaApiAuthClientIntegrationTest extends IntegrationTestCase
 
     public function test_authoriseUser_should_call_strava_api_and_parse_auth_tokens()
     {
+        [$accessToken, $refreshToken] = $this->authClient->authoriseUser('e0a045e4fc315db71997c97c1168f02994820977');
 
-        $tokens = $this->authClient->authoriseUser('e2298a240a530ac572295b33957a7e1356cf31ac');
-
-        $this->assertCount(2, $tokens);
-        $this->assertNotNull($tokens['access_token']);
-        $this->assertNotNull($tokens['refresh_token']);
+        $this->assertNotNull($accessToken);
+        $this->assertNotNull($refreshToken);
     }
 
     public function test_getAccessToken_should_call_strava_api_and_parse_auth_tokens()
     {
-        $user = new User('test@test.com', 'password', null, '9acca5464ab5d8c6f4870dc4b0cb79c290adcf78');
+        $user = (new User(Uuid::uuid4()))
+            ->setEmail('test@test.com')
+            ->setPassword('password')
+            ->setRefreshToken('0dcd5922a58bc907ddd922bc926c6474fa09c319');
 
-        [$accessToken, $refreshToken] = $this->authClient->getAccessToken($user);
+        $accessToken = $this->authClient->getAccessToken($user);
 
         $this->assertNotNull($accessToken);
-        $this->assertNotNull($refreshToken);
+        $this->assertNotNull($user->getRefreshToken());
+        $this->assertNotEquals('0dcd5922a58bc907ddd922bc926c6474fa09c319', $user->getRefreshToken());
     }
 }

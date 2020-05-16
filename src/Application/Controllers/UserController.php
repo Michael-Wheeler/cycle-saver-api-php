@@ -8,6 +8,7 @@ use CycleSaver\Domain\Repository\UserRepositoryInterface;
 use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Ramsey\Uuid\Uuid;
 
 class UserController
 {
@@ -33,7 +34,9 @@ class UserController
             );
         }
 
-        $user = new User($body['email'], $body['password']);
+        $user = (new User(Uuid::uuid4()))
+            ->setEmail($body['email'])
+            ->setPassword($body['password']);
 
         try {
             $id = $this->repository->save($user);
