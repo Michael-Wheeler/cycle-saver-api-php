@@ -11,10 +11,18 @@ class User
     private ?string $password;
     private ?string $refreshToken;
 
-    public function __construct(UuidInterface $id)
-    {
+    public function __construct(
+        ?UuidInterface $id,
+        ?string $email = null,
+        ?string $password = null,
+        ?string $refreshToken = null
+    ) {
         $this->id = $id;
+        $this->email = $email;
+        $this->password = $password;
+        $this->refreshToken = $refreshToken;
     }
+
 
     public function getId(): ?UuidInterface
     {

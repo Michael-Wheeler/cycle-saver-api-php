@@ -157,6 +157,11 @@ class StravaApiClient
             return null;
         }
 
+        if ($activity->start_latlng === $activity->end_latlng) {
+            $this->logger->debug('Cannot use Strava activities that start and end at the same location');
+            return null;
+        }
+
         $startDate = DateTimeImmutable::createFromFormat(DATE_ISO8601, $activity->start_date_local);
         if (!$startDate) {
             throw new InvalidArgumentException('Invalid start date format');

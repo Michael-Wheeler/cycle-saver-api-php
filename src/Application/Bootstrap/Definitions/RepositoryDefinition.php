@@ -2,9 +2,9 @@
 
 namespace CycleSaver\Application\Bootstrap\Definitions;
 
-use CycleSaver\Domain\Repository\ActivityRepositoryInterface;
+use CycleSaver\Domain\Repository\CommuteRepositoryInterface;
 use CycleSaver\Domain\Repository\UserRepositoryInterface;
-use CycleSaver\Infrastructure\ActivityRepository;
+use CycleSaver\Infrastructure\CommuteRepository;
 use CycleSaver\Infrastructure\UserRepository;
 use DI\Container;
 use MongoDB\Driver\Manager;
@@ -21,8 +21,8 @@ class RepositoryDefinition implements ServiceDefinition
                     $c->get(LoggerInterface::class)
                 );
             },
-            ActivityRepositoryInterface::class => function (Container $c) {
-                return new ActivityRepository(
+            CommuteRepositoryInterface::class => function (Container $c) {
+                return new CommuteRepository(
                     $c->get(Manager::class),
                     $c->get(LoggerInterface::class)
                 );

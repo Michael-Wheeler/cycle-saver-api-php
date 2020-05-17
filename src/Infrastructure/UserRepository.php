@@ -30,12 +30,13 @@ class UserRepository implements UserRepositoryInterface
      */
     public function save(User $user): UuidInterface
     {
-        $id = $user->getId() ?? Uuid::uuid4();
+        $id = property_exists($user, 'id') ? $user->getId() : null;
+        $email = property_exists($user, 'email') ? $user->getEmail() : null;
 
         $userArray = [
             '_id' => (string) $id,
-            'email' => $user->getEmail() ?? null,
-            'password' => $user->getPassword()
+            'email' => $email,
+            'password' => property_exists($user, 'password') ? $user->getPassword() : null
         ];
 
         $bulk = new BulkWrite();

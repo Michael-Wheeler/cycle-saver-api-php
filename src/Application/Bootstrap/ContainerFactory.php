@@ -38,8 +38,8 @@ class ContainerFactory
             RepositoryDefinition::getDefinitions(),
             StravaInfrastructureDefinition::getDefinitions(),
             HttpClientDefinition::getDefinitions(),
-            StravaServiceDefinition::getDefinitions(),
             TflDefinition::getDefinitions(),
+            StravaServiceDefinition::getDefinitions(),
         );
     }
 }

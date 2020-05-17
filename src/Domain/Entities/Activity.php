@@ -9,15 +9,10 @@ use Ramsey\Uuid\UuidInterface;
 abstract class Activity
 {
     private ?UuidInterface $id;
-
     private ?UuidInterface $userId;
-
     private array $startLatLong;
-
     private array $endLatLong;
-
     private DateTimeImmutable $startDate;
-
     private DateInterval $duration;
 
     public function __construct(
