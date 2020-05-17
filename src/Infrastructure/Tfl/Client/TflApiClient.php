@@ -47,7 +47,7 @@ class TflApiClient
             [
                 'query' =>
                     [
-                        'nationalSearch' => true,
+                        'nationalSearch' => 'true',
                         'date' => $startDate,
                         'time' => '0900',
                     ]
@@ -106,28 +106,35 @@ class TflApiClient
             throw new InvalidArgumentException('Body is not in valid JSON format');
         }
 
-        if (
-            !isset($body->journeys) ||
-            !isset($body->journeys[0]->fare) ||
-            !isset($body->journeys[0]->fare->totalCost) ||
-            !isset($body->journeys[0]->duration)
-        ) {
-            throw new InvalidArgumentException('TFL public transport journey is missing required field');
+        if (!isset($body->journeys) || !is_array($body->journeys)) {
+            throw new InvalidArgumentException('Response does not contain an array of journeys');
         }
 
-        $durationSeconds = $body->journeys[0]->duration * 60;
+        foreach ($body->journeys as $journey) {
+            if (
+                !isset($journey->fare) ||
+                !isset($journey->fare->totalCost) ||
+                !isset($journey->duration)
+            ) {
+                $this->logger->debug('TFL public transport journey is missing required field');
+                continue;
+            }
 
-        try {
-            $duration = new DateInterval("PT{$durationSeconds}S");
-        } catch (Exception $e) {
-            throw new InvalidArgumentException('Invalid duration format');
+            try {
+                $durationSeconds = $journey->duration * 60;
+                $duration = new DateInterval("PT{$durationSeconds}S");
+            } catch (Exception $e) {
+                throw new InvalidArgumentException('Invalid duration format');
+            }
+
+            $cost = $journey->fare->totalCost / 100;
+
+            return new PTJourney(
+                $cost,
+                $duration
+            );
         }
 
-        $cost = $body->journeys[0]->fare->totalCost / 100;
-
-        return new PTJourney(
-            $cost,
-            $duration
-        );
+        throw new InvalidArgumentException('Response does not contain any journeys with a fare and duration');
     }
 }

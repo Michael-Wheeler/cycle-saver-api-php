@@ -19,7 +19,7 @@ class TflDefinition implements ServiceDefinition
                     throw new ContainerException('Unable to retrieve FTL environment variables');
                 }
 
-                return new TflContext($baseUri, $clientID, $clientKey);
+                return new TflContext($clientID, $clientKey, $baseUri);
             }
         ];
     }

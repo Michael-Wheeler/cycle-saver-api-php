@@ -2,10 +2,10 @@
 
 namespace CycleSaver\Infrastructure\Tfl\Client;
 
+use CycleSaver\Infrastructure\Tfl\Exception\TflClientException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
-use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Psr\Log\LoggerInterface;
@@ -70,13 +70,220 @@ class TflApiClientTest extends TestCase
             )
         );
 
-        $pTJourney = $this->client->getPTJourney(
-            [51.501, -0.123],
-            [51.478873, -0.026715],
-        );
+        $pTJourney = $this->client->getPTJourney([51.501, -0.123], [51.478873, -0.026715]);
 
         $this->assertEquals(2.80, $pTJourney->getCost());
         $this->assertEquals(3360, $pTJourney->getDuration()->s);
+    }
+
+    public function test_getPTJourney_should_throw_TflClientException_if_API_returns_error()
+    {
+        $this->context->getBaseUri()->shouldBeCalled()->willReturn('test.com');
+        $this->context->getClientId()->shouldBeCalled()->willReturn('11111');
+        $this->context->getClientKey()->shouldBeCalled()->willReturn('22222');
+
+        $this->httpClient->request(
+            'GET',
+            'test.com/Journey/JourneyResults/51.501,-0.123/to/51.478873,-0.026715',
+            [
+                'query' =>
+                    [
+                        'nationalSearch' => true,
+                        'date' => '20200518',
+                        'time' => '0900',
+                        'app_id' => '11111',
+                        'app_key' => '22222'
+                    ]
+            ]
+        )->shouldBeCalled()->willThrow(new \Exception('api error'));
+
+        $this->logger->error('TFL client error when calling TFL API: api error')->shouldBeCalled();
+
+        $this->expectException(TflClientException::class);
+        $this->expectExceptionMessage('TFL client error when calling TFL API: api error');
+
+        $this->client->getPTJourney([51.501, -0.123], [51.478873, -0.026715]);
+    }
+
+    public function test_getPTJourney_should_throw_TflClientException_if_response_not_JSON()
+    {
+        $this->context->getBaseUri()->shouldBeCalled()->willReturn('test.com');
+        $this->context->getClientId()->shouldBeCalled()->willReturn('11111');
+        $this->context->getClientKey()->shouldBeCalled()->willReturn('22222');
+
+        $this->httpClient->request(
+            'GET',
+            'test.com/Journey/JourneyResults/51.501,-0.123/to/51.478873,-0.026715',
+            [
+                'query' =>
+                    [
+                        'nationalSearch' => true,
+                        'date' => '20200518',
+                        'time' => '0900',
+                        'app_id' => '11111',
+                        'app_key' => '22222'
+                    ]
+            ]
+        )->shouldBeCalled()->willReturn(
+            new Response(
+                200,
+                ['Content-Type' => 'application/json; charset=utf-8'],
+                null
+            )
+        );
+        $this->logger->error(
+            'TFL client was unable to parse activities response: Body is not in valid JSON format'
+        )->shouldBeCalled();
+
+        $this->expectException(TflClientException::class);
+        $this->expectExceptionMessage(
+            'TFL client was unable to parse activities response: Body is not in valid JSON format'
+        );
+
+        $this->client->getPTJourney([51.501, -0.123], [51.478873, -0.026715]);
+    }
+
+    public function test_getPTJourney_should_throw_TflClientException_if_response_is_missing_journeys()
+    {
+        $this->context->getBaseUri()->shouldBeCalled()->willReturn('test.com');
+        $this->context->getClientId()->shouldBeCalled()->willReturn('11111');
+        $this->context->getClientKey()->shouldBeCalled()->willReturn('22222');
+
+        $this->httpClient->request(
+            'GET',
+            'test.com/Journey/JourneyResults/51.501,-0.123/to/51.478873,-0.026715',
+            [
+                'query' =>
+                    [
+                        'nationalSearch' => true,
+                        'date' => '20200518',
+                        'time' => '0900',
+                        'app_id' => '11111',
+                        'app_key' => '22222'
+                    ]
+            ]
+        )->shouldBeCalled()->willReturn(
+            new Response(
+                200,
+                ['Content-Type' => 'application/json; charset=utf-8'],
+                json_encode((object) ['invalid' => 'invalid'])
+            )
+        );
+        $this->logger->error(
+            'TFL client was unable to parse activities response: Response does not contain an array of journeys'
+        )->shouldBeCalled();
+
+        $this->expectException(TflClientException::class);
+        $this->expectExceptionMessage(
+            'TFL client was unable to parse activities response: Response does not contain an array of journeys'
+        );
+
+        $this->client->getPTJourney([51.501, -0.123], [51.478873, -0.026715]);
+    }
+
+    public function test_getPTJourney_should_throw_TflClientException_if_all_journeys_are_missing_information()
+    {
+        $this->context->getBaseUri()->shouldBeCalled()->willReturn('test.com');
+        $this->context->getClientId()->shouldBeCalled()->willReturn('11111');
+        $this->context->getClientKey()->shouldBeCalled()->willReturn('22222');
+
+        $this->httpClient->request(
+            'GET',
+            'test.com/Journey/JourneyResults/51.501,-0.123/to/51.478873,-0.026715',
+            [
+                'query' =>
+                    [
+                        'nationalSearch' => true,
+                        'date' => '20200518',
+                        'time' => '0900',
+                        'app_id' => '11111',
+                        'app_key' => '22222'
+                    ]
+            ]
+        )->shouldBeCalled()->willReturn(
+            new Response(
+                200,
+                ['Content-Type' => 'application/json; charset=utf-8'],
+                json_encode((object) [
+                    'journeys' =>
+                        [
+                            [
+                                'duration' => 56,
+                            ],
+                            [
+                                'duration' => 49,
+                            ],
+                        ],
+                ])
+            )
+        );
+
+        $this->logger->debug(
+            'TFL public transport journey is missing required field'
+        )->shouldBeCalled();
+
+        $this->logger->error(
+            'TFL client was unable to parse activities response: ' .
+            'Response does not contain any journeys with a fare and duration'
+        )->shouldBeCalled();
+
+        $this->expectException(TflClientException::class);
+        $this->expectExceptionMessage(
+            'TFL client was unable to parse activities response: ' .
+            'Response does not contain any journeys with a fare and duration'
+        );
+
+        $this->client->getPTJourney([51.501, -0.123], [51.478873, -0.026715]);
+    }
+
+    public function test_getPTJourney_should_throw_TflClientException_if_invalid_duration_given()
+    {
+        $this->context->getBaseUri()->shouldBeCalled()->willReturn('test.com');
+        $this->context->getClientId()->shouldBeCalled()->willReturn('11111');
+        $this->context->getClientKey()->shouldBeCalled()->willReturn('22222');
+
+        $this->httpClient->request(
+            'GET',
+            'test.com/Journey/JourneyResults/51.501,-0.123/to/51.478873,-0.026715',
+            [
+                'query' =>
+                    [
+                        'nationalSearch' => true,
+                        'date' => '20200518',
+                        'time' => '0900',
+                        'app_id' => '11111',
+                        'app_key' => '22222'
+                    ]
+            ]
+        )->shouldBeCalled()->willReturn(
+            new Response(
+                200,
+                ['Content-Type' => 'application/json; charset=utf-8'],
+                json_encode((object) [
+                    'journeys' =>
+                        [
+                            [
+                                'duration' => 'invalid',
+                                'fare' =>
+                                    [
+                                        'totalCost' => 280,
+                                    ],
+                            ],
+                        ],
+                ])
+            )
+        );
+
+        $this->logger->error(
+            'TFL client was unable to parse activities response: Invalid duration format'
+        )->shouldBeCalled();
+
+        $this->expectException(TflClientException::class);
+        $this->expectExceptionMessage(
+            'TFL client was unable to parse activities response: Invalid duration format'
+        );
+
+        $this->client->getPTJourney([51.501, -0.123], [51.478873, -0.026715]);
     }
 
     private function pTJourneyBody(): object
