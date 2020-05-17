@@ -87,7 +87,7 @@ class StravaApiClientTest extends TestCase
 
         $this->assertCount(1, $activities);
         $this->assertEquals([54.97, -1.59], $activities[0]->getStartLatLong());
-        $this->assertEquals([54.97, -1.59], $activities[0]->getEndLatLong());
+        $this->assertEquals([54.97, -2.59], $activities[0]->getEndLatLong());
         $this->assertEquals(new \DateTimeImmutable('2020-03-27T13:18:03'), $activities[0]->getStartDate());
         $this->assertEquals(7152, $activities[0]->getDuration()->s);
         $this->assertEquals(36264, $activities[0]->getDistance());
@@ -110,7 +110,7 @@ class StravaApiClientTest extends TestCase
                     ],
                     "end_latlng" => [
                         54.97,
-                        -1.59
+                        -2.59
                     ],
                     "commute" => true,
                 ],
@@ -236,7 +236,7 @@ class StravaApiClientTest extends TestCase
                                 ],
                                 "end_latlng" => [
                                     54.97,
-                                    -1.59
+                                    -2.59
                                 ],
                                 "commute" => true,
                             ],
@@ -246,6 +246,46 @@ class StravaApiClientTest extends TestCase
             );
 
         $this->logger->error('Unable to parse Strava activity: Invalid start date format')
+            ->shouldBeCalled();
+
+        $activities = $this->client->getActivities('22222');
+
+        $this->assertEmpty($activities);
+    }
+
+
+    public function test_getActivities_should_skip_activity_with_same_start_and_end_location()
+    {
+        $this->context->getBaseUri()->shouldBeCalled()->willReturn('https://www.strava.com/api/v3/');
+
+        $this->httpClient->request(Argument::any(), Argument::any(), Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(
+                new Response(
+                    200,
+                    ['Content-Type' => 'application/json; charset=utf-8'],
+                    json_encode(
+                        [
+                            (object) [
+                                "distance" => 36264.4,
+                                "elapsed_time" => 7152,
+                                "start_date_local" => "invalid",
+                                "start_latlng" => [
+                                    54.97,
+                                    -1.59
+                                ],
+                                "end_latlng" => [
+                                    54.97,
+                                    -1.59
+                                ],
+                                "commute" => true,
+                            ],
+                        ]
+                    )
+                )
+            );
+
+        $this->logger->debug('Cannot use Strava activities that start and end at the same location')
             ->shouldBeCalled();
 
         $activities = $this->client->getActivities('22222');
@@ -275,7 +315,7 @@ class StravaApiClientTest extends TestCase
                                 ],
                                 "end_latlng" => [
                                     54.97,
-                                    -1.59
+                                    -2.59
                                 ],
                                 "commute" => true,
                             ],
@@ -322,7 +362,7 @@ class StravaApiClientTest extends TestCase
                     ],
                     "end_latlng" => [
                         54.97,
-                        -1.59
+                        -2.59
                     ],
                     "location_city" => null,
                     "location_state" => null,

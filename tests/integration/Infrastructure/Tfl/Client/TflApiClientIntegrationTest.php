@@ -10,7 +10,7 @@ class TflApiClientIntegrationTest extends IntegrationTestCase
 
     public function setUp(): void
     {
-//        $this->markTestSkipped('TFL journeys unfortunately have different routes and fares day be day.');
+        $this->markTestSkipped('TFL journeys unfortunately have different routes and fares day be day.');
 
         parent::setUp();
         $this->client = $this->container->get(TflApiClient::class);

@@ -4,36 +4,50 @@ namespace CycleSaver\Application\Bootstrap\Definitions;
 
 use CycleSaver\Application\Bootstrap\ContainerException;
 use DI\Container;
+use MongoDB\Client;
 use MongoDB\Database;
-use MongoDB\Driver\Manager;
+use MongoDB\Driver\Exception\InvalidArgumentException as DriverInvalidArgumentException;
+use MongoDB\Driver\Exception\RuntimeException as DriverRuntimeException;
+use MongoDB\Exception\InvalidArgumentException;
 
 class MongoDefinition implements ServiceDefinition
 {
     public static function getDefinitions(): array
     {
-        return [
-            Manager::class => function () {
+        return array(
+            Client::class => function () {
                 $username = getenv('MONGO_ADMIN');
                 $password = getenv('MONGO_ADMIN_PASS');
 
                 if (!$username || !$password) {
-                    throw new ContainerException('Unable to retrieve MongoDB environment variables');
+                    throw new ContainerException('Unable to retrieve MongoDB client dependencies');
                 }
 
-                return new Manager("mongodb://${username}:${password}@mongo:27017/");
+                try {
+                    return new Client(
+                        $uri = "mongodb://mongo:27017/",
+                        [
+                            'username' => $username,
+                            'password' => $password,
+                        ]
+                    );
+                } catch (InvalidArgumentException | DriverInvalidArgumentException | DriverRuntimeException $e) {
+                    throw new ContainerException("Could not instantiate MongoBD client: {$e->getMessage()}");
+                }
             },
             Database::class => function (Container $c) {
-                $manager = $c->get(Manager::class);
+                $client = $c->get(Client::class);
 
-                if (!$username || !$password) {
-                    throw new ContainerException('Unable to retrieve MongoDB dependencies');
+                if (!$client) {
+                    throw new ContainerException('Unable to retrieve MongoDB database dependencies');
                 }
 
-                return new Database(
-                    $manager,
-                    'cyclesaver'
-                );
-            },
-        ];
+                try {
+                    return $client->selectDatabase('cyclesaver');
+                } catch (\InvalidArgumentException $e) {
+                    throw new ContainerException("Could not instantiate MongoBD database: {$e->getMessage()}");
+                }
+            }
+        );
     }
 }

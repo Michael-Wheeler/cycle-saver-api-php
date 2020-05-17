@@ -15,7 +15,7 @@ class UserRepositoryIntegrationTest extends IntegrationTestCase
     {
         parent::setUp();
         $this->userRepository = new UserRepository(
-            $this->DBManager,
+            $this->database,
             $this->container->get(LoggerInterface::class)
         );
     }

@@ -7,7 +7,7 @@ use CycleSaver\Domain\Repository\UserRepositoryInterface;
 use CycleSaver\Infrastructure\CommuteRepository;
 use CycleSaver\Infrastructure\UserRepository;
 use DI\Container;
-use MongoDB\Driver\Manager;
+use MongoDB\Database;
 use Psr\Log\LoggerInterface;
 
 class RepositoryDefinition implements ServiceDefinition
@@ -17,13 +17,13 @@ class RepositoryDefinition implements ServiceDefinition
         return [
             UserRepositoryInterface::class => function (Container $c) {
                 return new UserRepository(
-                    $c->get(Manager::class),
+                    $c->get(Database::class),
                     $c->get(LoggerInterface::class)
                 );
             },
             CommuteRepositoryInterface::class => function (Container $c) {
                 return new CommuteRepository(
-                    $c->get(Manager::class),
+                    $c->get(Database::class),
                     $c->get(LoggerInterface::class)
                 );
             },

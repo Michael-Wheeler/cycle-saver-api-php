@@ -49,7 +49,7 @@ class Commute
         return $this->startLatLong;
     }
 
-    public function setStartLatLong(array $startLatLong): self
+    public function setStartLatLong(?array $startLatLong): self
     {
         $this->startLatLong = $startLatLong;
         return $this;
@@ -60,7 +60,7 @@ class Commute
         return $this->endLatLong;
     }
 
-    public function setEndLatLong(array $endLatLong): self
+    public function setEndLatLong(?array $endLatLong): self
     {
         $this->endLatLong = $endLatLong;
         return $this;
@@ -71,7 +71,7 @@ class Commute
         return $this->startDate;
     }
 
-    public function setStartDate(DateTimeImmutable $startDate): self
+    public function setStartDate(?DateTimeImmutable $startDate): self
     {
         $this->startDate = $startDate;
         return $this;
@@ -82,7 +82,7 @@ class Commute
         return $this->activityDuration;
     }
 
-    public function setActivityDuration(DateInterval $activityDuration): self
+    public function setActivityDuration(?DateInterval $activityDuration): self
     {
         $this->activityDuration = $activityDuration;
         return $this;
@@ -93,7 +93,7 @@ class Commute
         return $this->pTCost;
     }
 
-    public function setPTCost(float $pTCost): self
+    public function setPTCost(?float $pTCost): self
     {
         $this->pTCost = $pTCost;
         return $this;
@@ -104,7 +104,7 @@ class Commute
         return $this->pTDuration;
     }
 
-    public function setPTDuration(DateInterval $pTDuration): self
+    public function setPTDuration(?DateInterval $pTDuration): self
     {
         $this->pTDuration = $pTDuration;
         return $this;

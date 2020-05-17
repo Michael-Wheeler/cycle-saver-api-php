@@ -5,21 +5,22 @@ namespace CycleSaver\Infrastructure;
 use CycleSaver\Domain\Entities\User;
 use CycleSaver\Domain\Repository\UserRepositoryInterface;
 use Exception;
-use MongoDB\Driver\BulkWrite;
-use MongoDB\Driver\Manager;
+use MongoDB\Collection;
+use MongoDB\Database;
+use MongoDB\Driver\Exception\RuntimeException as DriverRuntimeException;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
 class UserRepository implements UserRepositoryInterface
 {
-    private string $userNamespace = 'cyclesaver.users';
-    private Manager $manager;
+    private string $collectionName = 'users';
+    private Collection $collection;
     private LoggerInterface $logger;
 
-    public function __construct(Manager $manager, LoggerInterface $logger)
+    public function __construct(Database $database, LoggerInterface $logger)
     {
-        $this->manager = $manager;
+        $this->collection = $database->selectCollection($this->collectionName);
         $this->logger = $logger;
     }
 
@@ -30,22 +31,18 @@ class UserRepository implements UserRepositoryInterface
      */
     public function save(User $user): UuidInterface
     {
-        $id = property_exists($user, 'id') ? $user->getId() : null;
-        $email = property_exists($user, 'email') ? $user->getEmail() : null;
+        $id = $user->getId() ?? Uuid::uuid4();
 
         $userArray = [
             '_id' => (string) $id,
-            'email' => $email,
-            'password' => property_exists($user, 'password') ? $user->getPassword() : null
+            'email' => $user->getEmail(),
+            'password' => $user->getPassword()
         ];
 
-        $bulk = new BulkWrite();
-        $bulk->insert($userArray);
-
         try {
-            $this->manager->executeBulkWrite($this->userNamespace, $bulk);
-        } catch (Exception $e) {
-            throw new Exception('Could not add user to DB' . $e->getMessage());
+            $this->collection->insertOne($userArray);
+        } catch (\InvalidArgumentException | DriverRuntimeException $e) {
+            throw new \InvalidArgumentException('Could not add user to collection: ' . $e->getMessage());
         }
 
         return $id;
