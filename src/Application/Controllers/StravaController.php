@@ -6,6 +6,8 @@ use CycleSaver\Application\ResponseFactory;
 use CycleSaver\Domain\Services\StravaService;
 use CycleSaver\Infrastructure\Strava\Exception\StravaAuthClientException;
 use CycleSaver\Infrastructure\Strava\Exception\StravaClientException;
+use CycleSaver\Infrastructure\Tfl\Exception\TflClientException;
+use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Psr7\Response;
@@ -24,12 +26,12 @@ class StravaController
         $authorisationCode = $request->getQueryParams()['code'] ?? null;
 
         if (!$authorisationCode) {
-            throw new \InvalidArgumentException('Strava authorisation code required.');
+            throw new InvalidArgumentException('Strava authorisation code required.');
         }
 
         try {
             $newUserId = $this->stravaService->newUser($authorisationCode);
-        } catch (StravaAuthClientException | StravaClientException $e) {
+        } catch (StravaAuthClientException | StravaClientException | TflClientException $e) {
             return ResponseFactory::createInternalErrorResponse(
                 'Unable to create new user from Strava: ' . $e->getMessage(),
                 $response
