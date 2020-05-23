@@ -45,7 +45,8 @@ class StravaServiceDefinition implements ServiceDefinition
                     new TflApiClient(
                         $c->get(TflContext::class),
                         $c->get(ClientInterface::class),
-                        $c->get(LoggerInterface::class)
+                        $c->get(LoggerInterface::class),
+                        $c->get(\DateTimeInterface::class)
                     )
                 );
 

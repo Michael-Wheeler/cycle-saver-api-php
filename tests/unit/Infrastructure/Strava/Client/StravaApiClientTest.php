@@ -182,17 +182,17 @@ class StravaApiClientTest extends TestCase
             );
 
         $this->logger->error('Strava client was unable to parse activities response: ' .
-            'Response body is not in an array format')
+            'Response body is not in a valid JSON array format')
             ->shouldBeCalled();
 
         $this->expectException(StravaClientException::class);
         $this->expectExceptionMessage('Strava client was unable to parse activities response: ' .
-            'Response body is not in an array format');
+            'Response body is not in a valid JSON array format');
 
         $this->client->getActivities('22222');
     }
 
-    public function test_getActivities_should_skip_invalid_activity_and_log_error()
+    public function test_getActivities_should_skip_activity_with_missing_fields_and_log_error()
     {
         $this->context->getBaseUri()->shouldBeCalled()->willReturn('https://www.strava.com/api/v3/');
 
@@ -202,11 +202,20 @@ class StravaApiClientTest extends TestCase
                 new Response(
                     200,
                     ['Content-Type' => 'application/json; charset=utf-8'],
-                    json_encode([(object) ['invalid' => 'invalid']])
+                    json_encode([
+                        (object) [
+                            "distance" => 36264.4,
+                            "elapsed_time" => 7152,
+                            "start_date" => "2020-03-27T13:18:03Z",
+                            "start_date_local" => "2020-03-27T13:18:03Z",
+                            "commute" => true,
+                        ],
+                    ])
                 )
             );
 
-        $this->logger->error('Unable to parse Strava activity: Strava activity is missing required field')
+        $this->logger->error('Unable to parse Strava activity: Strava activity is missing required fields: ' .
+            'start_latlng, end_latlng')
             ->shouldBeCalled();
 
         $activities = $this->client->getActivities('22222');

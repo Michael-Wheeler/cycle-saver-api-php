@@ -23,6 +23,9 @@ class StravaController
 
     public function newUser(ServerRequestInterface $request, Response $response, $args): ResponseInterface
     {
+        $resetSeconds = ini_get('max_execution_time');
+        set_time_limit(50);
+
         $authorisationCode = $request->getQueryParams()['code'] ?? null;
 
         if (!$authorisationCode) {
@@ -38,6 +41,7 @@ class StravaController
             );
         }
 
+        set_time_limit($resetSeconds);
         return ResponseFactory::createSuccessfulCreationResponse(
             (object) [
                 'id' => (string) $newUserId

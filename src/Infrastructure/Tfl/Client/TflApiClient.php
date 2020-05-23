@@ -5,6 +5,7 @@ namespace CycleSaver\Infrastructure\Tfl\Client;
 use CycleSaver\Domain\Entities\PTJourney;
 use CycleSaver\Infrastructure\Tfl\Exception\TflClientException;
 use DateInterval;
+use DateTimeInterface;
 use Exception;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Uri;
@@ -18,15 +19,18 @@ class TflApiClient
     private TflContext $context;
     private ClientInterface $client;
     private LoggerInterface $logger;
+    private DateTimeInterface $dateTime;
 
     public function __construct(
         TflContext $context,
         ClientInterface $client,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        DateTimeInterface $dateTime
     ) {
         $this->context = $context;
         $this->client = $client;
         $this->logger = $logger;
+        $this->dateTime = $dateTime;
     }
 
     /**
@@ -39,7 +43,7 @@ class TflApiClient
     {
         $startLatLng = implode(',', $startLatLng);
         $endLatLng = implode(',', $endLatLng);
-        $startDate = date('Ymd', strtotime("next Monday"));
+        $startDate = date('Ymd', strtotime("next Monday", $this->dateTime->getTimestamp()));
 
         $response = $this->makeRequest(
             'GET',

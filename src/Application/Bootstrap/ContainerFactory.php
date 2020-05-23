@@ -2,6 +2,7 @@
 
 namespace CycleSaver\Application\Bootstrap;
 
+use CycleSaver\Application\Bootstrap\Definitions\DateTimeDefinition;
 use CycleSaver\Application\Bootstrap\Definitions\HttpClientDefinition;
 use CycleSaver\Application\Bootstrap\Definitions\MongoDefinition;
 use CycleSaver\Application\Bootstrap\Definitions\RepositoryDefinition;
@@ -40,6 +41,7 @@ class ContainerFactory
             HttpClientDefinition::getDefinitions(),
             TflDefinition::getDefinitions(),
             StravaServiceDefinition::getDefinitions(),
+            DateTimeDefinition::getDefinitions(),
         );
     }
 }

@@ -120,7 +120,7 @@ class StravaApiClient
         $activitiesBody = json_decode($response->getBody()->getContents());
 
         if ($activitiesBody === null || !is_array($activitiesBody)) {
-            throw new InvalidArgumentException('Response body is not in an array format');
+            throw new InvalidArgumentException('Response body is not in a valid JSON array format');
         }
 
         $activities = [];
@@ -142,15 +142,21 @@ class StravaApiClient
      */
     private function parseActivity(object $activity): ?StravaActivity
     {
-        if (
-            !isset($activity->commute) ||
-            !isset($activity->start_latlng) ||
-            !isset($activity->end_latlng) ||
-            !isset($activity->elapsed_time) ||
-            !isset($activity->start_date_local) ||
-            !isset($activity->distance)
-        ) {
-            throw new InvalidArgumentException('Strava activity is missing required field');
+        $missingProperties = $this->validateProperties(
+            $activity,
+            [
+                'commute',
+                'start_latlng',
+                'end_latlng',
+                'elapsed_time',
+                'start_date_local',
+                'distance'
+            ]
+        );
+
+        if ($missingProperties !== []) {
+            throw new InvalidArgumentException('Strava activity is missing required fields: ' .
+                implode(', ', $missingProperties));
         }
 
         if (!$activity->commute) {
@@ -181,5 +187,17 @@ class StravaApiClient
             floor($activity->distance),
             null
         );
+    }
+
+    /**
+     * @param object $object
+     * @param string[] $properties
+     * @return string[]
+     */
+    private function validateProperties(object $object, array $properties): array
+    {
+        return array_filter($properties, function (string $property) use ($object) {
+            return !isset($object->$property);
+        });
     }
 }

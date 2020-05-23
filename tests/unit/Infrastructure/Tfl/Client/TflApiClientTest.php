@@ -3,6 +3,8 @@
 namespace CycleSaver\Infrastructure\Tfl\Client;
 
 use CycleSaver\Infrastructure\Tfl\Exception\TflClientException;
+use DateTimeImmutable;
+use DateTimeInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
@@ -23,6 +25,10 @@ class TflApiClientTest extends TestCase
      */
     private $logger;
     /**
+     * @var DateTimeInterface|ObjectProphecy
+     */
+    private $dateTime;
+    /**
      * @var TflContext
      */
     private $context;
@@ -35,19 +41,21 @@ class TflApiClientTest extends TestCase
         $this->context = $this->prophesize(TflContext::class);
         $this->httpClient = $this->prophesize(ClientInterface::class);
         $this->logger = $this->prophesize(LoggerInterface::class);
+        $this->dateTime = $this->prophesize(DateTimeImmutable::class);
 
         $this->client = new TflApiClient(
             $this->context->reveal(),
             $this->httpClient->reveal(),
-            $this->logger->reveal()
+            $this->logger->reveal(),
+            $this->dateTime->reveal()
         );
+
+        $this->dateTime->getTimestamp()->shouldBeCalled()->willReturn(1589673600);
     }
 
     public function test_getPTJourney_should_make_api_request_and_parse_response()
     {
-        $this->context->getBaseUri()->shouldBeCalled()->willReturn('test.com');
-        $this->context->getClientId()->shouldBeCalled()->willReturn('11111');
-        $this->context->getClientKey()->shouldBeCalled()->willReturn('22222');
+        $this->tflContext();
 
         $this->httpClient->request(
             'GET',
@@ -78,9 +86,7 @@ class TflApiClientTest extends TestCase
 
     public function test_getPTJourney_should_throw_TflClientException_if_API_returns_error()
     {
-        $this->context->getBaseUri()->shouldBeCalled()->willReturn('test.com');
-        $this->context->getClientId()->shouldBeCalled()->willReturn('11111');
-        $this->context->getClientKey()->shouldBeCalled()->willReturn('22222');
+        $this->tflContext();
 
         $this->httpClient->request(
             'GET',
@@ -107,9 +113,7 @@ class TflApiClientTest extends TestCase
 
     public function test_getPTJourney_should_throw_TflClientException_if_response_not_JSON()
     {
-        $this->context->getBaseUri()->shouldBeCalled()->willReturn('test.com');
-        $this->context->getClientId()->shouldBeCalled()->willReturn('11111');
-        $this->context->getClientKey()->shouldBeCalled()->willReturn('22222');
+        $this->tflContext();
 
         $this->httpClient->request(
             'GET',
@@ -145,9 +149,7 @@ class TflApiClientTest extends TestCase
 
     public function test_getPTJourney_should_throw_TflClientException_if_response_is_missing_journeys()
     {
-        $this->context->getBaseUri()->shouldBeCalled()->willReturn('test.com');
-        $this->context->getClientId()->shouldBeCalled()->willReturn('11111');
-        $this->context->getClientKey()->shouldBeCalled()->willReturn('22222');
+        $this->tflContext();
 
         $this->httpClient->request(
             'GET',
@@ -183,9 +185,7 @@ class TflApiClientTest extends TestCase
 
     public function test_getPTJourney_should_throw_TflClientException_if_all_journeys_are_missing_information()
     {
-        $this->context->getBaseUri()->shouldBeCalled()->willReturn('test.com');
-        $this->context->getClientId()->shouldBeCalled()->willReturn('11111');
-        $this->context->getClientKey()->shouldBeCalled()->willReturn('22222');
+        $this->tflContext();
 
         $this->httpClient->request(
             'GET',
@@ -238,9 +238,7 @@ class TflApiClientTest extends TestCase
 
     public function test_getPTJourney_should_throw_TflClientException_if_invalid_duration_given()
     {
-        $this->context->getBaseUri()->shouldBeCalled()->willReturn('test.com');
-        $this->context->getClientId()->shouldBeCalled()->willReturn('11111');
-        $this->context->getClientKey()->shouldBeCalled()->willReturn('22222');
+        $this->tflContext();
 
         $this->httpClient->request(
             'GET',
@@ -307,5 +305,17 @@ class TflApiClientTest extends TestCase
                     ],
                 ],
         ];
+    }
+
+    function date($format, $timestamp = 'time()')
+    {
+        return '20200518';
+    }
+
+    private function tflContext(): void
+    {
+        $this->context->getBaseUri()->shouldBeCalled()->willReturn('test.com');
+        $this->context->getClientId()->shouldBeCalled()->willReturn('11111');
+        $this->context->getClientKey()->shouldBeCalled()->willReturn('22222');
     }
 }
