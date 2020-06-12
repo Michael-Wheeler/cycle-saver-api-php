@@ -19,4 +19,6 @@ interface CommuteRepositoryInterface
      * @return Commute[]
      */
     public function getCommutesByUserId(UuidInterface $userId): array;
+
+    public function deleteCommutesByUserId(UuidInterface $userId): void;
 }

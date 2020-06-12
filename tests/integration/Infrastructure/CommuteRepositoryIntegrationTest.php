@@ -79,11 +79,29 @@ class CommuteRepositoryIntegrationTest extends IntegrationTestCase
         $this->assertTrue($this->assertArrayContains($commuteIds, $id2));
     }
 
+    public function test_deleteCommutesByUserId_should_find_and_remove_commutes()
+    {
+        $userId = Uuid::fromString('87491abb-7b3f-48d1-a34f-8082a273b9a7');
+
+        $this->newCommute(['user_id' => '87491abb-7b3f-48d1-a34f-8082a273b9a7']);
+        $this->newCommute(['user_id' => '87491abb-7b3f-48d1-a34f-8082a273b9a7']);
+        $this->newCommute([]);
+
+        $userCommutes = count($this->commuteRepository->getCommutesByUserId($userId));
+
+        $this->assertEquals(2, $userCommutes);
+
+        $this->commuteRepository->deleteCommutesByUserId($userId);
+        $userCommutes = count($this->commuteRepository->getCommutesByUserId($userId));
+
+        $this->assertEquals(0, $userCommutes);
+    }
+
     private function newCommute(array $attributes): InsertOneResult
     {
         return $this->collection->insertOne([
-            '_id' => $attributes['_id'] ?? Uuid::uuid4(),
-            'user_id' => $attributes['user_id'] ?? Uuid::uuid4(),
+            '_id' => $attributes['_id'] ?? (string) Uuid::uuid4(),
+            'user_id' => $attributes['user_id'] ?? (string) Uuid::uuid4(),
             'start_latlng' => $attributes['start_latlng'] ?? '51.478873,-0.026715',
             'end_latlng' => $attributes['end_latlng'] ?? '52.478873,-0.046715',
             'start_date' => $attributes['start_date'] ?? 1589673600,

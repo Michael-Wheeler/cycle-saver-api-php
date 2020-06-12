@@ -6,22 +6,23 @@ use CycleSaver\Application\Bootstrap\ContainerFactory;
 use MongoDB\Database;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Slim\Factory\AppFactory;
-use Slim\Psr7\Environment;
-use Slim\Psr7\Factory\ResponseFactory;
+use Slim\App;
 
 abstract class IntegrationTestCase extends TestCase
 {
     protected ContainerInterface $container;
     protected Database $database;
+    protected App $httpServer;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->container = (new ContainerFactory())->create();
+        $container = (new ContainerFactory())->create();
+        $this->container = $container;
+
+        $this->httpServer = require __DIR__ . '/../../src/Application/HttpServer.php';
 
         $this->database = $this->container->get(Database::class);
     }
@@ -36,9 +37,11 @@ abstract class IntegrationTestCase extends TestCase
 
     protected function makeRequest(ServerRequestInterface $uri): ResponseInterface
     {
-        $container = $this->container;
-        $app = require __DIR__ . '/../../src/Application/HttpServer.php';
+        return $this->httpServer->handle($uri);
+    }
 
-        return $app->handle($uri);
+    protected function getResponseBody(ResponseInterface $response): object
+    {
+        return json_decode((string) $response->getBody());
     }
 }

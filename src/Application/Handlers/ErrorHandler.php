@@ -3,7 +3,7 @@
 use CycleSaver\Application\Handlers\HttpErrorHandler;
 use CycleSaver\Application\Handlers\ShutdownHandler;
 
-$displayErrorDetails = true;
+$displayErrorDetails = false;
 
 $errorHandler = new HttpErrorHandler($callableResolver, $responseFactory);
 $shutdownHandler = new ShutdownHandler($request, $errorHandler, $displayErrorDetails);

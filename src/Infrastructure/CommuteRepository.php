@@ -62,11 +62,20 @@ class CommuteRepository implements CommuteRepositoryInterface
         return $id;
     }
 
+    public function deleteCommutesByUserId(UuidInterface $userId): void
+    {
+        try {
+            $this->collection->deleteMany(['user_id' => (string) $userId]);
+        } catch (UnsupportedException | \MongoDB\Exception\InvalidArgumentException | DriverRuntimeException $e) {
+            throw new InvalidArgumentException('Error when deleting user commutes: ' . $e->getMessage());
+        }
+    }
+
     public function getCommutesByUserId(UuidInterface $userId): array
     {
         try {
             return array_map(
-                array($this, 'documentToCommute'),
+                fn(object $commuteDocument) => $this->documentToCommute($commuteDocument),
                 $this->collection->find(['user_id' => (string) $userId])->toArray()
             );
         } catch (UnsupportedException | \MongoDB\Exception\InvalidArgumentException | DriverRuntimeException $e) {

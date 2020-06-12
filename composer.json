@@ -41,6 +41,12 @@
     "psr-4": {
       "CycleSaver\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "classmap": [
+      "tests/integration/IntegrationTestCase.php",
+      "tests/unit/UnitTestCase.php",
+      "tests/third_party/ThirdPartyTestCase.php"
+    ]
   }
 }
-W

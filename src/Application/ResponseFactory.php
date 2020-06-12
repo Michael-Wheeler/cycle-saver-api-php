@@ -10,7 +10,7 @@ class ResponseFactory
     public static function createBadRequestResponse(string $message, ResponseInterface $response): ResponseInterface
     {
         $response->getBody()->write(json_encode([
-            'status' => 'FAILED',
+            'status' => 'ERROR',
             'data' => [
                 'message' => $message
             ]
@@ -52,13 +52,26 @@ class ResponseFactory
     public static function createInternalErrorResponse(string $message, ResponseInterface $response): ResponseInterface
     {
         $response->getBody()->write(json_encode([
-            'status' => 'FAILED',
+            'status' => 'ERROR',
             'data' => [
                 'message' => $message
             ]
         ]));
 
         return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR)
+            ->withAddedHeader('Content-Type', 'application/json');
+    }
+
+    public static function createNotFoundResponse(string $message, ResponseInterface $response): ResponseInterface
+    {
+        $response->getBody()->write(json_encode([
+            'status' => 'ERROR',
+            'data' => [
+                'message' => $message
+            ]
+        ]));
+
+        return $response->withStatus(StatusCodeInterface::STATUS_NOT_FOUND)
             ->withAddedHeader('Content-Type', 'application/json');
     }
 }

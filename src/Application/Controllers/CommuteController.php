@@ -5,9 +5,9 @@ namespace CycleSaver\Application\Controllers;
 use CycleSaver\Application\ResponseFactory;
 use CycleSaver\Domain\Entities\Commute;
 use CycleSaver\Domain\Repository\CommuteRepositoryInterface;
-use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Ramsey\Uuid\Exception\InvalidUuidStringException;
 use Ramsey\Uuid\Uuid;
 use Slim\Psr7\Response;
 
@@ -23,16 +23,30 @@ class CommuteController
     public function getByUserId(ServerRequestInterface $request, Response $response, $args): ResponseInterface
     {
         $userId = $args['id'] ?? null;
-        $userId = Uuid::fromString($userId);
 
-        if (!$userId) {
-            throw new InvalidArgumentException('Valid user ID required to retrieve commutes');
+        try {
+            $userId = Uuid::fromString($userId);
+        } catch (InvalidUuidStringException $e) {
+            return ResponseFactory::createNotFoundResponse(
+                "Invalid user UUID provided: '$userId'",
+                $response
+            );
         }
 
-        $commutes = array_map(
-            fn(Commute $commute) => $this->commuteToObject($commute),
-            $this->repository->getCommutesByUserId($userId)
-        );
+        try {
+            $commutes = array_map(
+                fn(Commute $commute) => $this->commuteToObject($commute),
+                $this->repository->getCommutesByUserId($userId)
+            );
+
+            //TODO Delete this when user auth is setup
+            $this->repository->deleteCommutesByUserId($userId);
+        } catch (\InvalidArgumentException $e) {
+            return ResponseFactory::createInternalErrorResponse(
+                'Error occurred when retrieving user commutes',
+                $response
+            );
+        }
 
         return ResponseFactory::createSuccessResponse(
             (object) ['commutes' => $commutes],
