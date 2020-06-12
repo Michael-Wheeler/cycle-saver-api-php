@@ -77,10 +77,10 @@ class StravaApiAuthClient
      * Swap authorisation code for access token and refresh token
      *
      * @param string $authCode
-     * @return string[] [Access Token, Refresh Token]
+     * @return string[] [User ID, Refresh Token]
      * @throws StravaAuthClientException
      */
-    public function authoriseUser(string $authCode): array
+    public function authenticateUser(string $authCode): array
     {
         $uri = new Uri(rtrim($this->context->getBaseUri(), '/') . '/oauth/token');
 
@@ -104,7 +104,7 @@ class StravaApiAuthClient
             );
         }
 
-        return $this->parseAuthTokens($response);
+        return $this->parseUserDetails($response);
     }
 
     /**
@@ -131,5 +131,31 @@ class StravaApiAuthClient
         }
 
         return [$body->access_token, $body->refresh_token];
+    }
+
+    /**
+     * @param ResponseInterface $response
+     * @return string[] [User ID, Refresh Token]
+     * @throws StravaAuthClientException
+     */
+    private function parseUserDetails(ResponseInterface $response): array
+    {
+        $body = json_decode($response->getBody()->getContents());
+
+        if ($body === null) {
+            $this->logger->error('Strava auth client error: Unable to parse JSON response body');
+            throw new StravaAuthClientException(
+                'Strava auth client error: Unable to parse JSON response body'
+            );
+        }
+
+        if (!isset($body->refresh_token) || !isset($body->athlete->id)) {
+            $this->logger->error('Strava auth client error: Response does not contain refresh token or athlete ID');
+            throw new StravaAuthClientException(
+                'Strava auth client error: Response does not contain refresh token or athlete ID'
+            );
+        }
+
+        return [(string) $body->athlete->id, $body->refresh_token];
     }
 }

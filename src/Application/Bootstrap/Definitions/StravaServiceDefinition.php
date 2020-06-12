@@ -12,9 +12,10 @@ use CycleSaver\Infrastructure\Strava\Client\StravaContext;
 use CycleSaver\Infrastructure\Strava\StravaRepository;
 use CycleSaver\Infrastructure\Tfl\Client\TflApiClient;
 use CycleSaver\Infrastructure\Tfl\Client\TflContext;
-use CycleSaver\Infrastructure\Tfl\TflRepository;
+use CycleSaver\Infrastructure\Tfl\TflApiRepository;
 use DI\Container;
 use GuzzleHttp\ClientInterface;
+use MongoDB\Database;
 use Psr\Log\LoggerInterface;
 
 class StravaServiceDefinition implements ServiceDefinition
@@ -38,10 +39,12 @@ class StravaServiceDefinition implements ServiceDefinition
 
                 $stravaRepo = new StravaRepository(
                     $authClient,
-                    $client
+                    $client,
+                    $c->get(Database::class),
+                    $c->get(LoggerInterface::class)
                 );
 
-                $tflRepo = new TflRepository(
+                $tflRepo = new TflApiRepository(
                     new TflApiClient(
                         $c->get(TflContext::class),
                         $c->get(ClientInterface::class),

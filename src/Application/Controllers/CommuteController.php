@@ -30,7 +30,7 @@ class CommuteController
         }
 
         $commutes = array_map(
-            array($this, 'commuteToObject'),
+            fn(Commute $commute) => $this->commuteToObject($commute),
             $this->repository->getCommutesByUserId($userId)
         );
 

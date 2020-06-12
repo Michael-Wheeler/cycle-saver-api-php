@@ -18,3 +18,5 @@ $request = $serverRequestCreator->createServerRequestFromGlobals();
 require __DIR__ . '/Handlers/ErrorHandler.php';
 require __DIR__ . '/Middleware/Middleware.php';
 require __DIR__ . '/RouteMapper.php';
+
+return $app;

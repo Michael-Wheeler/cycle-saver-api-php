@@ -3,11 +3,16 @@
 <phpunit bootstrap="src/Application/Bootstrap/bootstrap.php"
          colors="true"
          stopOnFailure="false"
-         defaultTestSuite="all"
+         defaultTestSuite="default"
 >
     <testsuites>
         <testsuite name="all">
             <directory>./tests/</directory>
+        </testsuite>
+
+        <testsuite name="default">
+            <directory>./tests/unit/</directory>
+            <directory>./tests/integration/</directory>
         </testsuite>
 
         <testsuite name="unit">
@@ -16,6 +21,14 @@
 
         <testsuite name="integration">
             <directory>./tests/integration/</directory>
+        </testsuite>
+
+        <testsuite name="performance">
+            <directory>./tests/performance/</directory>
+        </testsuite>
+
+        <testsuite name="third_party">
+            <directory>./tests/third_party/</directory>
         </testsuite>
     </testsuites>
 </phpunit>

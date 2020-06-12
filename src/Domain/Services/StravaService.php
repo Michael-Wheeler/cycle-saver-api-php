@@ -2,15 +2,14 @@
 
 namespace CycleSaver\Domain\Services;
 
+use CycleSaver\Domain\Entities\Activity;
 use CycleSaver\Domain\Entities\Commute;
 use CycleSaver\Domain\Entities\User;
 use CycleSaver\Domain\Repository\CommuteRepositoryInterface;
+use CycleSaver\Domain\Repository\RepositoryException;
 use CycleSaver\Domain\Repository\UserRepositoryInterface;
-use CycleSaver\Infrastructure\Strava\Exception\StravaAuthClientException;
-use CycleSaver\Infrastructure\Strava\Exception\StravaClientException;
 use CycleSaver\Infrastructure\Strava\StravaRepository;
-use CycleSaver\Infrastructure\Tfl\Exception\TflClientException;
-use CycleSaver\Infrastructure\Tfl\TflRepository;
+use CycleSaver\Infrastructure\Tfl\TflApiRepository;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
@@ -19,13 +18,13 @@ class StravaService
     private StravaRepository $stravaRepo;
     private UserRepositoryInterface $userRepo;
     private CommuteRepositoryInterface $commuteRepo;
-    private TflRepository $tflRepo;
+    private TflApiRepository $tflRepo;
 
     public function __construct(
         StravaRepository $stravaRepo,
         UserRepositoryInterface $userRepo,
         CommuteRepositoryInterface $commuteRepo,
-        TflRepository $tflRepo
+        TflApiRepository $tflRepo
     ) {
         $this->stravaRepo = $stravaRepo;
         $this->userRepo = $userRepo;
@@ -36,31 +35,58 @@ class StravaService
     /**
      * @param string $authCode
      * @return UuidInterface|null
-     * @throws StravaAuthClientException
-     * @throws StravaClientException
-     * @throws TflClientException
+     * @throws RepositoryException
      */
-    public function newUser(string $authCode)
+    public function createStravaUser(string $authCode)
     {
-        $user = new User($userId = Uuid::uuid4());
+        $user = $this->createUser($authCode);
 
-        [$accessToken, $refreshToken] = $this->stravaRepo->authoriseUser($authCode);
+        $activities = $this->stravaRepo->getActivities($user);
 
-        $this->userRepo->save($user->setRefreshToken($refreshToken));
+        $journeys = $this->calculateJourneys($activities);
 
-        $activities = $this->stravaRepo->getActivities($accessToken);
+        foreach ($activities as $index => $activity) {
+            if (!$activity || !$journeys[$index]) {
+                continue;
+            }
 
-        foreach ($activities as $activity) {
-            $pTJourney = $this->tflRepo->getPTJourney(
-                $activity->getStartLatLong(),
-                $activity->getEndLatLong()
-            );
+            $commute = Commute::createFromActivityAndPTJourney($activity, $journeys[$index]);
 
-            $commute = Commute::createFromActivityAndPTJourney($activity, $pTJourney);
-
-            $this->commuteRepo->saveCommute($commute->setUserId($userId));
+            $this->commuteRepo->saveCommute($commute->setUserId($user->getId()));
         }
 
         return $user->getId();
+    }
+
+    /**
+     * @param string $authCode
+     * @return User
+     * @throws RepositoryException
+     */
+    private function createUser(string $authCode): User
+    {
+        $user = new User($userId = Uuid::uuid4());
+
+        $this->userRepo->save($user);
+
+        $this->stravaRepo->createUser($userId, $authCode);
+
+        return $user;
+    }
+
+    /**
+     * @param array $activities
+     * @return array
+     */
+    private function calculateJourneys(array $activities): array
+    {
+        $activitiesCoordinates = array_map(function (Activity $activity) {
+            return [
+                'startLatLng' => $activity->getStartLatLong(),
+                'endLatLng' => $activity->getEndLatLong()
+            ];
+        }, $activities);
+
+        return $this->tflRepo->getPTJourneys($activitiesCoordinates);
     }
 }

@@ -58,7 +58,7 @@ class ResponseFactory
             ]
         ]));
 
-        return $response->withStatus(StatusCodeInterface::STATUS_OK)
+        return $response->withStatus(StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR)
             ->withAddedHeader('Content-Type', 'application/json');
     }
 }

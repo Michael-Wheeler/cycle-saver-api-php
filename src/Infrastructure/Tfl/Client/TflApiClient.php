@@ -8,8 +8,12 @@ use DateInterval;
 use DateTimeInterface;
 use Exception;
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Pool;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Uri;
 use InvalidArgumentException;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -34,12 +38,64 @@ class TflApiClient
     }
 
     /**
+     * @param array $startEndCoordinates [[Start Lat Lng, End Lat Lng]]
+     * @return PTJourney[]
+     */
+    public function createPTJourneys(array $startEndCoordinates): array
+    {
+        $startDate = date('Ymd', strtotime("next Monday", $this->dateTime->getTimestamp()));
+
+        $requests = array_map(function (array $journey) use ($startDate) {
+            $startLatLng = implode(',', $journey['startLatLng']);
+            $endLatLng = implode(',', $journey['endLatLng']);
+
+            return $this->buildRequest(
+                'GET',
+                "/Journey/JourneyResults/{$startLatLng}/to/{$endLatLng}",
+                [
+                    'nationalSearch' => 'true',
+                    'date' => $startDate,
+                    'time' => '0900',
+                ]
+            );
+        }, $startEndCoordinates);
+
+        $responses = Pool::batch(
+            $this->client,
+            $requests,
+            [
+                'concurrency' => 10,
+                'rejected' => function (RequestException $e) {
+                    $this->logger->error("Error when calling TFL API: {$e->getMessage()}");
+                    return false;
+                },
+            ]
+        );
+
+        $journeys = array_map(function (ResponseInterface $response) {
+            if (!$response) {
+                return false;
+            }
+
+            try {
+                return $this->parsePTJourneyResponse($response);
+            } catch (InvalidArgumentException $e) {
+                $this->logger->error("TFL client was unable to parse activities response: {$e->getMessage()}");
+
+                return false;
+            }
+        }, $responses);
+
+        return array_filter($journeys);
+    }
+
+    /**
      * @param array $startLatLng
      * @param array $endLatLng
      * @return PTJourney
      * @throws TflClientException
      */
-    public function getPTJourney(array $startLatLng, array $endLatLng): PTJourney
+    public function createPTJourney(array $startLatLng, array $endLatLng): PTJourney
     {
         $startLatLng = implode(',', $startLatLng);
         $endLatLng = implode(',', $endLatLng);
@@ -62,6 +118,7 @@ class TflApiClient
             return $this->parsePTJourneyResponse($response);
         } catch (InvalidArgumentException $e) {
             $this->logger->error("TFL client was unable to parse activities response: {$e->getMessage()}");
+
             throw new TFLClientException(
                 "TFL client was unable to parse activities response: {$e->getMessage()}"
             );
@@ -99,6 +156,32 @@ class TflApiClient
     }
 
     /**
+     * @param string $method
+     * @param string $path
+     * @param array $params
+     * @param mixed $body
+     * @return RequestInterface
+     */
+    private function buildRequest(string $method, string $path, array $params = [], $body = null): RequestInterface
+    {
+        $uri = new Uri(rtrim($this->context->getBaseUri(), '/') . $path);
+
+        $params[] = [
+            'app_id' => $this->context->getClientId(),
+            'app_key' => $this->context->getClientKey()
+        ];
+
+        $uri = $uri . '?' . http_build_query($params);
+
+        return new Request(
+            $method,
+            $uri,
+            [],
+            $body
+        );
+    }
+
+    /**
      * @param $response
      * @return PTJourney
      */
@@ -131,7 +214,7 @@ class TflApiClient
                 throw new InvalidArgumentException('Invalid duration format');
             }
 
-            $cost = $journey->fare->totalCost / 100;
+            $cost = $journey->fare->totalCost;
 
             return new PTJourney(
                 $cost,

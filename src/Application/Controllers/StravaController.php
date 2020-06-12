@@ -3,10 +3,8 @@
 namespace CycleSaver\Application\Controllers;
 
 use CycleSaver\Application\ResponseFactory;
+use CycleSaver\Domain\Repository\RepositoryException;
 use CycleSaver\Domain\Services\StravaService;
-use CycleSaver\Infrastructure\Strava\Exception\StravaAuthClientException;
-use CycleSaver\Infrastructure\Strava\Exception\StravaClientException;
-use CycleSaver\Infrastructure\Tfl\Exception\TflClientException;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -21,10 +19,10 @@ class StravaController
         $this->stravaService = $stravaService;
     }
 
-    public function newUser(ServerRequestInterface $request, Response $response, $args): ResponseInterface
+    public function newUser(ServerRequestInterface $request, Response $response): ResponseInterface
     {
         $resetSeconds = ini_get('max_execution_time');
-        set_time_limit(50);
+        set_time_limit(360);
 
         $authorisationCode = $request->getQueryParams()['code'] ?? null;
 
@@ -33,10 +31,10 @@ class StravaController
         }
 
         try {
-            $newUserId = $this->stravaService->newUser($authorisationCode);
-        } catch (StravaAuthClientException | StravaClientException | TflClientException $e) {
+            $newUserId = $this->stravaService->createStravaUser($authorisationCode);
+        } catch (RepositoryException $e) {
             return ResponseFactory::createInternalErrorResponse(
-                'Unable to create new user from Strava: ' . $e->getMessage(),
+                'Unable to create new user from Strava',
                 $response
             );
         }

@@ -3,10 +3,10 @@
 namespace CycleSaver\Infrastructure\Strava\Client;
 
 use CycleSaver\Domain\Entities\User;
-use CycleSaver\Test\IntegrationTestCase;
+use CycleSaver\Test\ThirdPartyTestCase;
 use Ramsey\Uuid\Uuid;
 
-class StravaApiAuthClientIntegrationTest extends IntegrationTestCase
+class StravaApiAuthClientIntegrationTest extends ThirdPartyTestCase
 {
     private StravaApiAuthClient $authClient;
 
@@ -20,7 +20,7 @@ class StravaApiAuthClientIntegrationTest extends IntegrationTestCase
 
     public function test_authoriseUser_should_call_strava_api_and_parse_auth_tokens()
     {
-        [$accessToken, $refreshToken] = $this->authClient->authoriseUser('e0a045e4fc315db71997c97c1168f02994820977');
+        [$accessToken, $refreshToken] = $this->authClient->authenticateUser('e0a045e4fc315db71997c97c1168f02994820977');
 
         $this->assertNotNull($accessToken);
         $this->assertNotNull($refreshToken);

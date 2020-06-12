@@ -2,23 +2,24 @@
 
 namespace CycleSaver\Infrastructure\Tfl\Client;
 
-use CycleSaver\Test\IntegrationTestCase;
+use CycleSaver\Test\ThirdPartyTestCase;
 
-class TflApiClientIntegrationTest extends IntegrationTestCase
+class TflApiClientIntegrationTest extends ThirdPartyTestCase
 {
     private TflApiClient $client;
 
     public function setUp(): void
     {
-        $this->markTestSkipped('TFL journeys unfortunately have different routes and fares day be day.');
+        $this->markTestSkipped('More work needs to be done to stabilise the TFL commute costs from day to day.');
 
         parent::setUp();
+
         $this->client = $this->container->get(TflApiClient::class);
     }
 
     public function test_getPTJourney_should_call_tfl_api_and_parse_activity_repsonse()
     {
-        $journey = $this->client->getPTJourney(
+        $journey = $this->client->createPTJourney(
             [51.525640, -0.087604],
             [51.478873, -0.026715]
         );

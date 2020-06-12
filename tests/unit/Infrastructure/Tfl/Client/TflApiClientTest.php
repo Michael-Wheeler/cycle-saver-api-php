@@ -50,7 +50,7 @@ class TflApiClientTest extends TestCase
             $this->dateTime->reveal()
         );
 
-        $this->dateTime->getTimestamp()->shouldBeCalled()->willReturn(1589673600);
+        $this->dateTime->getTimestamp()->willReturn(1589673600);
     }
 
     public function test_getPTJourney_should_make_api_request_and_parse_response()
@@ -78,9 +78,9 @@ class TflApiClientTest extends TestCase
             )
         );
 
-        $pTJourney = $this->client->getPTJourney([51.501, -0.123], [51.478873, -0.026715]);
+        $pTJourney = $this->client->createPTJourney([51.501, -0.123], [51.478873, -0.026715]);
 
-        $this->assertEquals(2.80, $pTJourney->getCost());
+        $this->assertEquals(280, $pTJourney->getCost());
         $this->assertEquals(3360, $pTJourney->getDuration()->s);
     }
 
@@ -108,7 +108,7 @@ class TflApiClientTest extends TestCase
         $this->expectException(TflClientException::class);
         $this->expectExceptionMessage('TFL client error when calling TFL API: api error');
 
-        $this->client->getPTJourney([51.501, -0.123], [51.478873, -0.026715]);
+        $this->client->createPTJourney([51.501, -0.123], [51.478873, -0.026715]);
     }
 
     public function test_getPTJourney_should_throw_TflClientException_if_response_not_JSON()
@@ -144,7 +144,7 @@ class TflApiClientTest extends TestCase
             'TFL client was unable to parse activities response: Body is not in valid JSON format'
         );
 
-        $this->client->getPTJourney([51.501, -0.123], [51.478873, -0.026715]);
+        $this->client->createPTJourney([51.501, -0.123], [51.478873, -0.026715]);
     }
 
     public function test_getPTJourney_should_throw_TflClientException_if_response_is_missing_journeys()
@@ -180,7 +180,7 @@ class TflApiClientTest extends TestCase
             'TFL client was unable to parse activities response: Response does not contain an array of journeys'
         );
 
-        $this->client->getPTJourney([51.501, -0.123], [51.478873, -0.026715]);
+        $this->client->createPTJourney([51.501, -0.123], [51.478873, -0.026715]);
     }
 
     public function test_getPTJourney_should_throw_TflClientException_if_all_journeys_are_missing_information()
@@ -233,7 +233,7 @@ class TflApiClientTest extends TestCase
             'Response does not contain any journeys with a fare and duration'
         );
 
-        $this->client->getPTJourney([51.501, -0.123], [51.478873, -0.026715]);
+        $this->client->createPTJourney([51.501, -0.123], [51.478873, -0.026715]);
     }
 
     public function test_getPTJourney_should_throw_TflClientException_if_invalid_duration_given()
@@ -281,7 +281,7 @@ class TflApiClientTest extends TestCase
             'TFL client was unable to parse activities response: Invalid duration format'
         );
 
-        $this->client->getPTJourney([51.501, -0.123], [51.478873, -0.026715]);
+        $this->client->createPTJourney([51.501, -0.123], [51.478873, -0.026715]);
     }
 
     private function pTJourneyBody(): object
@@ -305,11 +305,6 @@ class TflApiClientTest extends TestCase
                     ],
                 ],
         ];
-    }
-
-    function date($format, $timestamp = 'time()')
-    {
-        return '20200518';
     }
 
     private function tflContext(): void

@@ -1,6 +1,11 @@
 <?php
+
+use CycleSaver\Application\Middleware\CorsMiddleware;
+
 //TODO what does this do?
 $app->addRoutingMiddleware();
+
+$app->add(CorsMiddleware::class);
 
 /** Examples of middleware running before and after controller. Uncomment to try and then remove */
 //$app->add(new TestBeforeMiddleware());

@@ -41,10 +41,6 @@
     "psr-4": {
       "CycleSaver\\": "src/"
     }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "CycleSaver\\Test\\": "tests/integration/"
-    }
   }
 }
+W
