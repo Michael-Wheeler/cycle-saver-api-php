@@ -11,12 +11,4 @@ abstract class UnitTestCase extends TestCase
     {
         return json_decode((string) $response->getBody());
     }
-
-    protected function assertResponseCodeAndMessage(int $code, string $message, ResponseInterface $response): void
-    {
-        $responseMessage = $this->getResponseBody($response)->data->message;
-
-        $this->assertEquals($code, $response->getStatusCode());
-        $this->assertEquals($message, $responseMessage);
-    }
 }

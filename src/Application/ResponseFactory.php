@@ -11,12 +11,27 @@ class ResponseFactory
     {
         $response->getBody()->write(json_encode([
             'status' => 'ERROR',
-            'data' => [
+            'data' => (object) [
                 'message' => $message
             ]
         ]));
 
         return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST)
+            ->withAddedHeader('Content-Type', 'application/json');
+    }
+
+    public static function createUnprocessableEntityResponse(
+        string $message,
+        ResponseInterface $response
+    ): ResponseInterface {
+        $response->getBody()->write(json_encode([
+            'status' => 'ERROR',
+            'data' => (object) [
+                'message' => $message
+            ]
+        ]));
+
+        return $response->withStatus(StatusCodeInterface::STATUS_UNPROCESSABLE_ENTITY)
             ->withAddedHeader('Content-Type', 'application/json');
     }
 
@@ -53,7 +68,7 @@ class ResponseFactory
     {
         $response->getBody()->write(json_encode([
             'status' => 'ERROR',
-            'data' => [
+            'data' => (object) [
                 'message' => $message
             ]
         ]));
@@ -66,7 +81,7 @@ class ResponseFactory
     {
         $response->getBody()->write(json_encode([
             'status' => 'ERROR',
-            'data' => [
+            'data' => (object) [
                 'message' => $message
             ]
         ]));

@@ -5,7 +5,6 @@ namespace CycleSaver\Application\Controllers;
 use CycleSaver\Application\ResponseFactory;
 use CycleSaver\Domain\Repository\RepositoryException;
 use CycleSaver\Domain\Services\StravaService;
-use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Psr7\Response;
@@ -26,24 +25,25 @@ class StravaController
 
         $authorisationCode = $request->getQueryParams()['code'] ?? null;
 
-        if (!$authorisationCode) {
-            throw new InvalidArgumentException('Strava authorisation code required.');
+        if ($authorisationCode === null) {
+            return ResponseFactory::createBadRequestResponse(
+                'Strava auth code required to connect to Strava.',
+                $response
+            );
         }
 
         try {
             $newUserId = $this->stravaService->createStravaUser($authorisationCode);
         } catch (RepositoryException $e) {
             return ResponseFactory::createInternalErrorResponse(
-                'Unable to create new user from Strava',
+                'Internal error occurred when creating new user from Strava data.',
                 $response
             );
         }
 
         set_time_limit($resetSeconds);
         return ResponseFactory::createSuccessfulCreationResponse(
-            (object) [
-                'id' => (string) $newUserId
-            ],
+            (object) ['id' => (string) $newUserId],
             $response
         );
     }

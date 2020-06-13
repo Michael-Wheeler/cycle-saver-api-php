@@ -10,9 +10,6 @@ use Ramsey\Uuid\Uuid;
 
 class CommuteControllerIntegrationTest extends IntegrationTestCase
 {
-    private CommuteRepositoryInterface $repository;
-    private CommuteController $controller;
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -80,7 +77,7 @@ class CommuteControllerIntegrationTest extends IntegrationTestCase
         $expectedBody = (object) [
             'status' => 'ERROR',
             'data' => (object) [
-                'message' => "Invalid user UUID provided: 'invalid'"
+                'message' => "Invalid user UUID provided: 'invalid'."
             ]
         ];
 

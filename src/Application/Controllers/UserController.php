@@ -4,8 +4,8 @@ namespace CycleSaver\Application\Controllers;
 
 use CycleSaver\Application\ResponseFactory;
 use CycleSaver\Domain\Entities\User;
+use CycleSaver\Domain\Repository\RepositoryException;
 use CycleSaver\Domain\Repository\UserRepositoryInterface;
-use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Ramsey\Uuid\Uuid;
@@ -19,7 +19,7 @@ class UserController
         $this->repository = $repository;
     }
 
-    public function createUser(ServerRequestInterface $request, ResponseInterface $response, $args): ResponseInterface
+    public function createUser(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $body = $request->getParsedBody();
 
@@ -28,8 +28,8 @@ class UserController
         }
 
         if (!isset($body['email']) || !isset($body['password'])) {
-            return ResponseFactory::createBadRequestResponse(
-                'Create user request must contain email and password.',
+            return ResponseFactory::createUnprocessableEntityResponse(
+                'Email and password required to create new user.',
                 $response
             );
         }
@@ -40,8 +40,11 @@ class UserController
 
         try {
             $id = $this->repository->save($user);
-        } catch (Exception $e) {
-            return ResponseFactory::createInternalErrorResponse($e->getMessage(), $response);
+        } catch (RepositoryException $e) {
+            return ResponseFactory::createInternalErrorResponse(
+                'Internal error occurred when adding new user to repository',
+                $response
+            );
         }
 
         return ResponseFactory::createSuccessfulCreationResponse(

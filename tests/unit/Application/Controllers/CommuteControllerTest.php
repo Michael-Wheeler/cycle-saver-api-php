@@ -42,6 +42,14 @@ class CommuteControllerTest extends UnitTestCase
             ['id' => 'cfe5b4e4-0407-463a-8cd2-d1a36f461984']
         );
 
-        $this->assertResponseCodeAndMessage(500, 'Error occurred when retrieving user commutes', $response);
+        $expectedBody = (object) [
+            'status' => 'ERROR',
+            'data' => (object) [
+                'message' => 'Error occurred when retrieving user commutes.'
+            ]
+        ];
+
+        $this->assertEquals(500, $response->getStatusCode());
+        $this->assertEquals($expectedBody, $this->getResponseBody($response));
     }
 }

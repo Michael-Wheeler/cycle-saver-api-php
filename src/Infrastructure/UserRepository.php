@@ -3,8 +3,8 @@
 namespace CycleSaver\Infrastructure;
 
 use CycleSaver\Domain\Entities\User;
+use CycleSaver\Domain\Repository\RepositoryException;
 use CycleSaver\Domain\Repository\UserRepositoryInterface;
-use Exception;
 use MongoDB\Collection;
 use MongoDB\Database;
 use MongoDB\Driver\Exception\RuntimeException as DriverRuntimeException;
@@ -24,11 +24,6 @@ class UserRepository implements UserRepositoryInterface
         $this->logger = $logger;
     }
 
-    /**
-     * @param User $user
-     * @return UuidInterface
-     * @throws Exception
-     */
     public function save(User $user): UuidInterface
     {
         $id = $user->getId() ?? Uuid::uuid4();
@@ -42,7 +37,7 @@ class UserRepository implements UserRepositoryInterface
         try {
             $this->collection->insertOne($userArray);
         } catch (\InvalidArgumentException | DriverRuntimeException $e) {
-            throw new \InvalidArgumentException('Could not add user to collection: ' . $e->getMessage());
+            throw new RepositoryException('Could not add user to collection: ' . $e->getMessage());
         }
 
         return $id;

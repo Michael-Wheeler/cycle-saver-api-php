@@ -28,7 +28,7 @@ class CommuteController
             $userId = Uuid::fromString($userId);
         } catch (InvalidUuidStringException $e) {
             return ResponseFactory::createNotFoundResponse(
-                "Invalid user UUID provided: '$userId'",
+                "Invalid user UUID provided: '$userId'.",
                 $response
             );
         }
@@ -43,7 +43,7 @@ class CommuteController
             $this->repository->deleteCommutesByUserId($userId);
         } catch (\InvalidArgumentException $e) {
             return ResponseFactory::createInternalErrorResponse(
-                'Error occurred when retrieving user commutes',
+                'Error occurred when retrieving user commutes.',
                 $response
             );
         }
