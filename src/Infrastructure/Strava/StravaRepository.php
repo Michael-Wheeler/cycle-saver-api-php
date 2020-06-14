@@ -125,7 +125,7 @@ class StravaRepository implements ActivityRepositoryInterface
     /**
      * @param UuidInterface $userId
      * @return StravaUser
-     * @throws InvalidArgumentException
+     * @throws RepositoryException
      */
     public function getStravaUserByUserId(UuidInterface $userId): StravaUser
     {
@@ -134,7 +134,7 @@ class StravaRepository implements ActivityRepositoryInterface
 
             return $this->documentToStravaUser($document);
         } catch (UnsupportedException | \MongoDB\Exception\InvalidArgumentException | DriverRuntimeException $e) {
-            throw new InvalidArgumentException('Error when retrieving Strava user: ' . $e->getMessage());
+            throw new RepositoryException('Error when retrieving Strava user: ' . $e->getMessage());
         }
     }
 

@@ -2,6 +2,7 @@
 
 namespace CycleSaver\Domain\Entities;
 
+use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
 class User
@@ -11,11 +12,11 @@ class User
     private ?string $password;
 
     public function __construct(
-        ?UuidInterface $id,
+        ?UuidInterface $id = null,
         ?string $email = null,
         ?string $password = null
     ) {
-        $this->id = $id;
+        $this->id = $id ?? Uuid::uuid4();
         $this->email = $email;
         $this->password = $password;
     }

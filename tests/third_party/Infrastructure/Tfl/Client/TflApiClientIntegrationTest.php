@@ -17,7 +17,7 @@ class TflApiClientIntegrationTest extends ThirdPartyTestCase
         $this->client = $this->container->get(TflApiClient::class);
     }
 
-    public function test_getPTJourney_should_call_tfl_api_and_parse_activity_repsonse()
+    public function test_createPTJourney_should_call_tfl_api_and_parse_activity_repsonse()
     {
         $journey = $this->client->createPTJourney(
             [51.525640, -0.087604],

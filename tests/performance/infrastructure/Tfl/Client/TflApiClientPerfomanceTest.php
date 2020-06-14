@@ -15,10 +15,10 @@ class TflApiClientPerfomanceTest extends IntegrationTestCase
         $this->client = $this->container->get(TflApiClient::class);
     }
 
-    public function test_getPTJourney_performance()
+    public function test_createPTJourney_performance()
     {
         foreach ($this->journeys() as $journey) {
-            $journeys[] = $this->client->createPTJourney($journey['startLatLng'], $journey['endLatLng']);
+            $journeys[] = $this->client->createPTJourney($journey['start_latlng'], $journey['end_latlng']);
         }
 
         $this->assertEquals(30, count($journeys));
@@ -35,8 +35,8 @@ class TflApiClientPerfomanceTest extends IntegrationTestCase
     {
         $journeys = [
             [
-                'startLatLng' => [51.525640, -0.087604],
-                'endLatLng' => [51.478873, -0.026715]
+                'start_latlng' => [51.525640, -0.087604],
+                'end_latlng' => [51.478873, -0.026715]
             ],
         ];
 
@@ -50,8 +50,8 @@ class TflApiClientPerfomanceTest extends IntegrationTestCase
     private function randomLondonCoordinates(): array
     {
         return [
-            'startLatLng' => [$this->randomLondonLat(), $this->randomLondonLng()],
-            'endLatLng' => [$this->randomLondonLat(), $this->randomLondonLng()]
+            'start_latlng' => [$this->randomLondonLat(), $this->randomLondonLng()],
+            'end_latlng' => [$this->randomLondonLat(), $this->randomLondonLng()]
         ];
     }
 

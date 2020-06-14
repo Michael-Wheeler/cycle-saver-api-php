@@ -9,7 +9,6 @@ use CycleSaver\Test\UnitTestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
-use Ramsey\Uuid\Uuid;
 use Slim\Http\ServerRequest;
 use Slim\Psr7\Response;
 
@@ -45,20 +44,12 @@ class UserControllerTest extends UnitTestCase
                 && $user->getPassword() === 'pass'
         );
 
-        $this->repository->save($userArg)->shouldBeCalled()
-            ->willReturn(Uuid::fromString('2db20b91-6b40-4642-a40b-80ce6db0cad2'));
+        $this->repository->save($userArg)->shouldBeCalled();
 
         $response = $this->controller->createUser($request->reveal(), new Response());
 
-        $expectedBody = (object) [
-            'status' => 'SUCCESS',
-            'data' => (object) [
-                'id' => '2db20b91-6b40-4642-a40b-80ce6db0cad2'
-            ]
-        ];
-
         $this->assertEquals(201, $response->getStatusCode());
-        $this->assertEquals($expectedBody, $this->getResponseBody($response));
+        $this->assertEquals('SUCCESS', $this->getResponseBody($response)->status);
     }
 
     public function test_createUser_should_return_500_if_repository_throws_error()

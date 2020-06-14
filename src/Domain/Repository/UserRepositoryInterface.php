@@ -9,8 +9,15 @@ interface UserRepositoryInterface
 {
     /**
      * @param User $user
-     * @return UuidInterface
+     * @return void
      * @throws RepositoryException
      */
-    public function save(User $user): UuidInterface;
+    public function save(User $user): void;
+
+    /**
+     * @param UuidInterface $id
+     * @return User
+     * @throws RepositoryException
+     */
+    public function getUserById(UuidInterface $id): User;
 }

@@ -8,7 +8,6 @@ use DateInterval;
 use DateTimeInterface;
 use Exception;
 use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Uri;
@@ -38,16 +37,17 @@ class TflApiClient
     }
 
     /**
-     * @param array $startEndCoordinates [[Start Lat Lng, End Lat Lng]]
+     * @param array $coordinates [[Start LatLng, End LatLng]]
      * @return PTJourney[]
+     * @throws TflClientException
      */
-    public function createPTJourneys(array $startEndCoordinates): array
+    public function createPTJourneys(array $coordinates): array
     {
         $startDate = date('Ymd', strtotime("next Monday", $this->dateTime->getTimestamp()));
 
         $requests = array_map(function (array $journey) use ($startDate) {
-            $startLatLng = implode(',', $journey['startLatLng']);
-            $endLatLng = implode(',', $journey['endLatLng']);
+            $startLatLng = implode(',', $journey['start_latlng']);
+            $endLatLng = implode(',', $journey['end_latlng']);
 
             return $this->buildRequest(
                 'GET',
@@ -58,22 +58,22 @@ class TflApiClient
                     'time' => '0900',
                 ]
             );
-        }, $startEndCoordinates);
+        }, $coordinates);
 
-        $responses = Pool::batch(
-            $this->client,
-            $requests,
-            [
-                'concurrency' => 10,
-                'rejected' => function (RequestException $e) {
-                    $this->logger->error("Error when calling TFL API: {$e->getMessage()}");
-                    return false;
-                },
-            ]
-        );
+        try {
+            $responses = Pool::batch(
+                $this->client,
+                $requests,
+                ['concurrency' => 10]
+            );
+        } catch (InvalidArgumentException $e) {
+            $this->logger->error("Error when creating request for TFL create journey API: {$e->getMessage()}");
+            throw new TflClientException('Error occurred when creating request for TFL API');
+        }
 
-        $journeys = array_map(function (ResponseInterface $response) {
-            if (!$response) {
+        return array_map(function ($response) {
+            if ($response instanceof Exception) {
+                $this->logger->error("Error when calling TFL API: {$response->getMessage()}");
                 return false;
             }
 
@@ -81,12 +81,9 @@ class TflApiClient
                 return $this->parsePTJourneyResponse($response);
             } catch (InvalidArgumentException $e) {
                 $this->logger->error("TFL client was unable to parse activities response: {$e->getMessage()}");
-
                 return false;
             }
         }, $responses);
-
-        return array_filter($journeys);
     }
 
     /**
@@ -184,8 +181,9 @@ class TflApiClient
     /**
      * @param $response
      * @return PTJourney
+     * @throws InvalidArgumentException
      */
-    private function parsePTJourneyResponse($response): PTJourney
+    private function parsePTJourneyResponse(ResponseInterface $response): PTJourney
     {
         $body = json_decode($response->getBody()->getContents());
 

@@ -39,7 +39,7 @@ class UserController
             ->setPassword($body['password']);
 
         try {
-            $id = $this->repository->save($user);
+            $this->repository->save($user);
         } catch (RepositoryException $e) {
             return ResponseFactory::createInternalErrorResponse(
                 'Internal error occurred when adding new user to repository',
@@ -48,7 +48,7 @@ class UserController
         }
 
         return ResponseFactory::createSuccessfulCreationResponse(
-            (object) ['id' => (string) $id],
+            (object) ['id' => (string) $user->getId()],
             $response
         );
     }

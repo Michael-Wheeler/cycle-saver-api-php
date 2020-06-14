@@ -22,7 +22,7 @@ class TflApiRepository
      * @return PTJourney
      * @throws RepositoryException
      */
-    public function getPTJourney(array $startLatLng, array $endLatLng): PTJourney
+    public function createPTJourney(array $startLatLng, array $endLatLng): PTJourney
     {
         try {
             return $this->client->createPTJourney($startLatLng, $endLatLng);
@@ -32,11 +32,16 @@ class TflApiRepository
     }
 
     /**
-     * @param array $startEndCoordinates [[Start Lat Lng, End Lat Lng]]
+     * @param array $coordinates [[Start LatLng, End LatLng]]
      * @return PTJourney[]
+     * @throws RepositoryException
      */
-    public function getPTJourneys(array $startEndCoordinates): array
+    public function createPTJourneys(array $coordinates): array
     {
-        return $this->client->createPTJourneys($startEndCoordinates);
+        try {
+            return $this->client->createPTJourneys($coordinates);
+        } catch (TflClientException $e) {
+            throw new RepositoryException('Unable to create public transport journeys');
+        }
     }
 }

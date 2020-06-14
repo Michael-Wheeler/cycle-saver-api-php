@@ -8,6 +8,7 @@ use CycleSaver\Domain\Repository\UserRepositoryInterface;
 use MongoDB\Collection;
 use MongoDB\Database;
 use MongoDB\Driver\Exception\RuntimeException as DriverRuntimeException;
+use MongoDB\Exception\UnsupportedException;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
@@ -24,12 +25,10 @@ class UserRepository implements UserRepositoryInterface
         $this->logger = $logger;
     }
 
-    public function save(User $user): UuidInterface
+    public function save(User $user): void
     {
-        $id = $user->getId() ?? Uuid::uuid4();
-
         $userArray = [
-            '_id' => (string) $id,
+            '_id' => (string) $user->getId(),
             'email' => $user->getEmail(),
             'password' => $user->getPassword()
         ];
@@ -37,9 +36,27 @@ class UserRepository implements UserRepositoryInterface
         try {
             $this->collection->insertOne($userArray);
         } catch (\InvalidArgumentException | DriverRuntimeException $e) {
-            throw new RepositoryException('Could not add user to collection: ' . $e->getMessage());
+            throw new RepositoryException('Could not add user to database: ' . $e->getMessage());
         }
+    }
 
-        return $id;
+    public function getUserById(UuidInterface $id): User
+    {
+        try {
+            $document = $this->collection->findOne(['_id' => (string) $id]);
+
+            return $this->documentToUser($document);
+        } catch (UnsupportedException | \MongoDB\Exception\InvalidArgumentException | DriverRuntimeException $e) {
+            throw new RepositoryException('Error when retrieving user from database: ' . $e->getMessage());
+        }
+    }
+
+    private function documentToUser(object $document): User
+    {
+        return new User(
+            Uuid::fromString($document->_id),
+            $document->email ?? null,
+            $document->password ?? null
+        );
     }
 }

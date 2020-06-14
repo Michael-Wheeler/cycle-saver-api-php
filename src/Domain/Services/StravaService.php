@@ -10,7 +10,6 @@ use CycleSaver\Domain\Repository\RepositoryException;
 use CycleSaver\Domain\Repository\UserRepositoryInterface;
 use CycleSaver\Infrastructure\Strava\StravaRepository;
 use CycleSaver\Infrastructure\Tfl\TflApiRepository;
-use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
 class StravaService
@@ -65,11 +64,9 @@ class StravaService
      */
     private function createUser(string $authCode): User
     {
-        $user = new User($userId = Uuid::uuid4());
+        $this->userRepo->save($user = new User());
 
-        $this->userRepo->save($user);
-
-        $this->stravaRepo->createUser($userId, $authCode);
+        $this->stravaRepo->createUser($user->getId(), $authCode);
 
         return $user;
     }
@@ -77,16 +74,17 @@ class StravaService
     /**
      * @param array $activities
      * @return array
+     * @throws RepositoryException
      */
     private function calculateJourneys(array $activities): array
     {
         $activitiesCoordinates = array_map(function (Activity $activity) {
             return [
-                'startLatLng' => $activity->getStartLatLong(),
-                'endLatLng' => $activity->getEndLatLong()
+                'start_latlng' => $activity->getStartLatLong(),
+                'end_latlng' => $activity->getEndLatLong()
             ];
         }, $activities);
 
-        return $this->tflRepo->getPTJourneys($activitiesCoordinates);
+        return $this->tflRepo->createPTJourneys($activitiesCoordinates);
     }
 }
