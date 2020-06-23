@@ -5,7 +5,7 @@ namespace CycleSaver\Application\Controllers;
 use CycleSaver\Domain\Entities\User;
 use CycleSaver\Domain\Repository\RepositoryException;
 use CycleSaver\Domain\Repository\UserRepositoryInterface;
-use CycleSaver\Test\UnitTestCase;
+use CycleSaver\UnitTestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;

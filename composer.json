@@ -43,10 +43,13 @@
     }
   },
   "autoload-dev": {
-    "classmap": [
-      "tests/integration/IntegrationTestCase.php",
-      "tests/unit/UnitTestCase.php",
-      "tests/third_party/ThirdPartyTestCase.php"
-    ]
+    "psr-4": {
+      "CycleSaver\\": [
+        "tests/unit",
+        "tests/integration",
+        "tests/third_party",
+        "tests/performance"
+      ]
+    }
   }
 }

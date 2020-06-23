@@ -3,7 +3,7 @@
 namespace CycleSaver\Application\Controllers;
 
 use CycleSaver\Domain\Repository\CommuteRepositoryInterface;
-use CycleSaver\Test\UnitTestCase;
+use CycleSaver\UnitTestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;

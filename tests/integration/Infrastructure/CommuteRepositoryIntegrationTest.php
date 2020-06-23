@@ -3,7 +3,7 @@
 namespace CycleSaver\Infrastructure;
 
 use CycleSaver\Domain\Entities\Commute;
-use CycleSaver\Test\IntegrationTestCase;
+use CycleSaver\IntegrationTestCase;
 use MongoDB\Collection;
 use MongoDB\InsertOneResult;
 use Psr\Log\LoggerInterface;

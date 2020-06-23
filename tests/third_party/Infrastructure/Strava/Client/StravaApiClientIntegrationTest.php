@@ -2,7 +2,7 @@
 
 namespace CycleSaver\Infrastructure\Strava\Client;
 
-use CycleSaver\Test\ThirdPartyTestCase;
+use CycleSaver\ThirdPartyTestCase;
 
 class StravaApiClientIntegrationTest extends ThirdPartyTestCase
 {

@@ -4,7 +4,7 @@ namespace CycleSaver\Application\Controllers;
 
 use CycleSaver\Domain\Entities\Commute;
 use CycleSaver\Domain\Repository\CommuteRepositoryInterface;
-use CycleSaver\Test\IntegrationTestCase;
+use CycleSaver\IntegrationTestCase;
 use GuzzleHttp\Psr7\ServerRequest;
 use Ramsey\Uuid\Uuid;
 

@@ -3,7 +3,7 @@
 namespace CycleSaver\Infrastructure;
 
 use CycleSaver\Domain\Entities\User;
-use CycleSaver\Test\IntegrationTestCase;
+use CycleSaver\IntegrationTestCase;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 

@@ -32,5 +32,5 @@ COPY --chown=www-data ./src /opt/src/
 
 EXPOSE 80
 WORKDIR /opt
-RUN chmod +x bin/test
+RUN chmod +x bin/
 CMD ["php-fpm"]

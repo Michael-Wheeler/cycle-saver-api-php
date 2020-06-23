@@ -10,7 +10,7 @@ use CycleSaver\Domain\Repository\RepositoryException;
 use CycleSaver\Domain\Repository\UserRepositoryInterface;
 use CycleSaver\Infrastructure\Strava\StravaRepository;
 use CycleSaver\Infrastructure\Tfl\TflApiRepository;
-use CycleSaver\Test\UnitTestCase;
+use CycleSaver\UnitTestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;

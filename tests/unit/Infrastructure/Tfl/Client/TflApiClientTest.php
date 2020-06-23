@@ -3,6 +3,7 @@
 namespace CycleSaver\Infrastructure\Tfl\Client;
 
 use CycleSaver\Infrastructure\Tfl\Exception\TflClientException;
+use CycleSaver\UnitTestCase;
 use DateTimeImmutable;
 use DateTimeInterface;
 use GuzzleHttp\ClientInterface;
@@ -10,13 +11,12 @@ use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Promise\RejectedPromise;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
-use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Psr\Log\LoggerInterface;
 
-class TflApiClientTest extends TestCase
+class TflApiClientTest extends UnitTestCase
 {
     use ProphecyTrait;
 

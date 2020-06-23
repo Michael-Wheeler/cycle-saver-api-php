@@ -4,7 +4,7 @@ namespace CycleSaver\Application\Controllers;
 
 use CycleSaver\Domain\Repository\RepositoryException;
 use CycleSaver\Domain\Services\StravaService;
-use CycleSaver\Test\UnitTestCase;
+use CycleSaver\UnitTestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Ramsey\Uuid\Uuid;

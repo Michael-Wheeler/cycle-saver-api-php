@@ -2,7 +2,7 @@
 
 namespace CycleSaver\Infrastructure\Tfl\Client;
 
-use CycleSaver\Test\IntegrationTestCase;
+use CycleSaver\IntegrationTestCase;
 
 class TflApiClientPerfomanceTest extends IntegrationTestCase
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace CycleSaver\Test;
+namespace CycleSaver;
 
 use CycleSaver\Application\Bootstrap\ContainerFactory;
 use MongoDB\Database;

@@ -3,7 +3,7 @@
 namespace CycleSaver\Infrastructure\Strava\Client;
 
 use CycleSaver\Domain\Entities\User;
-use CycleSaver\Test\ThirdPartyTestCase;
+use CycleSaver\ThirdPartyTestCase;
 use Ramsey\Uuid\Uuid;
 
 class StravaApiAuthClientIntegrationTest extends ThirdPartyTestCase

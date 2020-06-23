@@ -2,7 +2,7 @@
 
 namespace CycleSaver\Infrastructure\Tfl\Client;
 
-use CycleSaver\Test\ThirdPartyTestCase;
+use CycleSaver\ThirdPartyTestCase;
 
 class TflApiClientIntegrationTest extends ThirdPartyTestCase
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace CycleSaver\Test;
+namespace CycleSaver;
 
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
