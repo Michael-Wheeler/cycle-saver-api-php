@@ -8,6 +8,7 @@ use CycleSaver\Infrastructure\CommuteRepository;
 use CycleSaver\Infrastructure\UserRepository;
 use DI\Container;
 use MongoDB\Database;
+use MongoDB\Driver\ClientEncryption;
 use Psr\Log\LoggerInterface;
 
 class RepositoryDefinition implements ServiceDefinition
@@ -16,8 +17,29 @@ class RepositoryDefinition implements ServiceDefinition
     {
         return [
             UserRepositoryInterface::class => function (Container $c) {
+                $database = $c->get(Database::class);
+                $key = $password = getenv('MONGO_KEY');
+
+
+                $database->createCollection('users', [
+                    'validator' => [
+                        '$jsonSchema' => [
+                            'bsonType' => 'object',
+                            'properties' => [
+                                'password' => [
+                                    'encrypt' => [
+                                        'keyId' => [$key],
+                                        'bsonType' => 'string',
+                                        'algorithm' => ClientEncryption::AEAD_AES_256_CBC_HMAC_SHA_512_DETERMINISTIC,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ]);
+
                 return new UserRepository(
-                    $c->get(Database::class),
+                    $database,
                     $c->get(LoggerInterface::class)
                 );
             },
