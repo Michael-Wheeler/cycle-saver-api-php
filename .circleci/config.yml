@@ -12,7 +12,13 @@ jobs:
           name: Install Docker client
           command: |
             sudo apt-get update
-            sudo apt-get docker-cli
+            apt-get install \
+                apt-transport-https \
+                ca-certificates \
+                curl \
+                gnupg-agent \
+                software-properties-common
+            sudo apt-get install docker-ce docker-ce-cli containerd.io
 
       - run:
           name: Build test image
