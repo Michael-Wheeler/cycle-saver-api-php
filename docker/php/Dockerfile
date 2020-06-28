@@ -8,8 +8,7 @@ RUN composer install --ignore-platform-reqs
 FROM php:7.4-fpm-alpine
 
 COPY --from=composer /opt/vendor /opt/src/vendor
-#TODO Decide what we can leave out of copying to docker
-COPY ./ /opt/
+COPY --chown=www-data ./ /opt/
 
 RUN apk add --update --no-cache \
     curl \
@@ -28,7 +27,7 @@ RUN docker-php-ext-install -j$(nproc) \
 RUN pecl install mongodb-1.7.2 \
     && docker-php-ext-enable mongodb
 
-COPY --chown=www-data ./src /opt/src/
+# COPY --chown=www-data ./src /opt/src/
 
 EXPOSE 80
 WORKDIR /opt
