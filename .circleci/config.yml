@@ -10,8 +10,7 @@ jobs:
 
       - run:
           name: Install Docker client
-          command: |
-          apk add docker-cli
+          command: apk add docker-cli
 
       - run:
           name: Build test image
