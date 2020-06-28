@@ -3,23 +3,22 @@ jobs:
   build:
     docker:
       image: circleci/php:7.4.7-cli
-    working_directory: ~/back-to-win-api
 
     steps:
+      - checkout
+      - setup_remote_docker
+
       - run:
           name: Install Docker client
-          command: apk add docker-cli      - setup_remote_docker
+          command: |
+          apk add docker-cli
 
-      - run: echo "hello precheckout"
-      - checkout
-      - run: ech "after checkout"
-          -
       - run:
-          name: Build Test Image
+          name: Build test image
           command: docker-compose -f docker-compose.yml up -d --build
 
       - run:
-          name: Test Release Image
+          name: Test image
           command: bin/docker-test
 
       - deploy:
