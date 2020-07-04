@@ -46,7 +46,6 @@ COPY ./docker/php/nginx.conf /etc/nginx/nginx.conf
 COPY ./src /opt/src
 COPY ./tests /opt/tests
 COPY ./public /opt/public
-COPY ./vendor /opt/vendor
 COPY ./bin /opt/bin
 
 # RUN usermod -a -G root www-data
