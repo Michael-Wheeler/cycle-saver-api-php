@@ -7,7 +7,6 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./:/opt
       - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
       - ./docker/nginx/log.conf:/usr/local/etc/php-fpm.d/zz-log.conf
     depends_on:
@@ -22,7 +21,7 @@ services:
       context: ./
     volumes:
       - ./:/opt
-      - ./docker/php/php.ini:/usr/local/etc/php/php.ini
+      - composer:/opt/vendor
     networks:
       - server
       - database
@@ -59,6 +58,7 @@ services:
 
 volumes:
   mongo-data:
+  composer:
 
 networks:
   server:
