@@ -34,7 +34,7 @@ services:
 #      - ./docker/database/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     environment:
       MONGO_INITDB_ROOT_USERNAME: test
-      MONGO_INITDB_ROOT_PASSWORD: secret
+      MONGO_INITDB_ROOT_PASSWORD: pass
     # Don't think this is needed
     #    ports:
     #      - "27017:27017"
