@@ -7,4 +7,4 @@ fi
 
 echo "\e[96m\e[1mDocker container running, starting tests\e[0m"
 
-docker-compose run php vendor/bin/phpunit $@
+docker-compose run php /opt/vendor/bin/phpunit $@
