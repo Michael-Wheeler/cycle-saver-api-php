@@ -13,7 +13,6 @@ WORKDIR /opt
 
 COPY src/ /opt/src
 COPY tests/ /opt/tests
-COPY vendor/ /opt/vendor
 
 RUN composer dump-autoload \
     --no-interaction \
