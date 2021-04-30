@@ -37,7 +37,7 @@ jobs:
 
       - run:
           name: Test image
-          command: docker-compose run php vendor/bin/phpunit
+          command: docker-compose run php /opt/vendor/bin/phpunit
 
       - deploy:
           name: Deploy to Production

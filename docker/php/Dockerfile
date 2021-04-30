@@ -43,8 +43,8 @@ RUN apk add --update --no-cache \
 RUN docker-php-ext-install -j$(nproc) \
     pdo \
     curl \
-#     opcache \
     json
+#     opcache \
 
 RUN pecl install mongodb-1.7.2 \
     && docker-php-ext-enable mongodb
