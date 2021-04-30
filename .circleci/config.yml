@@ -35,9 +35,11 @@ jobs:
           name: Build test image
           command: docker-compose -f docker-compose.yaml up -d --build
 
+
+
       - run:
           name: Test image
-          command: docker-compose run php /opt/vendor/bin/phpunit
+          command: docker-compose -f docker-compose.yaml run php /opt/vendor/bin/phpunit
 
       - deploy:
           name: Deploy to Production
