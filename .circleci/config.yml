@@ -32,12 +32,13 @@ jobs:
             - vendor
 
       - run:
+          name: Test image
+          command: vendor/bin/phpunit
+
+      - run:
           name: Build test image
           command: docker-compose -f docker-compose.yaml up -d --build
 
-      - run:
-          name: Test image
-          command: vendor/bin/phpunit
 
       - deploy:
           name: Deploy to Production
