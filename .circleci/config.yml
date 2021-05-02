@@ -21,13 +21,6 @@ jobs:
             sudo curl -L "https://github.com/docker/compose/releases/download/1.26.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
 
-      - run:
-          name: Build test image
-          command: docker-compose -f docker-compose.yaml up -d --build
-
-      - run: sudo pecl install mongodb-1.7.2
-      - run: sudo docker-php-ext-enable mongodb
-
       - restore_cache:
           keys:
             - composer-v1-{{ checksum "composer.lock" }}
@@ -37,6 +30,13 @@ jobs:
           key: composer-v1-{{ checksum "composer.lock" }}
           paths:
             - vendor
+
+      - run:
+          name: Build test image
+          command: docker-compose -f docker-compose.yaml up -d --build
+
+      - run: sudo pecl install mongodb-1.7.2
+      - run: sudo docker-php-ext-enable mongodb
 
       - run:
           name: Test image
