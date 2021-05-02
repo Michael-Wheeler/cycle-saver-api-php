@@ -21,6 +21,10 @@ jobs:
             sudo curl -L "https://github.com/docker/compose/releases/download/1.26.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
 
+      - run:
+          name: Build test image
+          command: docker-compose -f docker-compose.yaml up -d --build
+
       - run: sudo pecl install mongodb-1.7.2
       - run: sudo docker-php-ext-enable mongodb
 
@@ -37,10 +41,6 @@ jobs:
       - run:
           name: Test image
           command: vendor/bin/phpunit
-
-      - run:
-          name: Build test image
-          command: docker-compose -f docker-compose.yaml up -d --build
 
       - deploy:
           name: Deploy to Production
