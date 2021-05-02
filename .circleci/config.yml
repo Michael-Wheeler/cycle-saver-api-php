@@ -23,7 +23,7 @@ jobs:
 
       - run:
           name: Install Application Requirements
-          command: pecl install mongodb-1.7.2
+          command: sudo pecl install mongodb-1.7.2
             docker-php-ext-enable mongodb
 
       - restore_cache:
