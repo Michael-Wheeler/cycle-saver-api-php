@@ -39,7 +39,6 @@ jobs:
           name: Build test image
           command: docker-compose -f docker-compose.yaml up -d --build
 
-
       - deploy:
           name: Deploy to Production
           command: |

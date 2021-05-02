@@ -18,6 +18,7 @@ class MongoDefinition implements ServiceDefinition
             Client::class => function () {
                 $username = getenv('MONGO_ADMIN');
                 $password = getenv('MONGO_ADMIN_PASS');
+                $mongoUri = getenv('MONGO_URI');
 
                 if (!$username || !$password) {
                     throw new ContainerException('Unable to retrieve MongoDB client dependencies');
@@ -25,7 +26,7 @@ class MongoDefinition implements ServiceDefinition
 
                 try {
                     return new Client(
-                        $uri = "mongodb://mongo:27017/",
+                        $mongoUri,
                         [
                             'username' => $username,
                             'password' => $password,
