@@ -53,5 +53,5 @@ RUN pecl install mongodb-1.7.2 \
 
 EXPOSE 80
 WORKDIR /opt
-RUN chmod +x bin/
+RUN chmod +x bin/ -R
 CMD ["php-fpm"]
