@@ -37,10 +37,6 @@ jobs:
 
       - run:
           name: Test image
-          command: bin/test
-
-      - run:
-          name: Test image
           command: bin/docker-test
 
       - deploy:
