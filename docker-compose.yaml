@@ -3,6 +3,7 @@ version: '3.7'
 services:
   web:
     image: nginx:latest
+    container_name: proxy
     restart: always
     ports:
       - "8080:80"
@@ -16,6 +17,7 @@ services:
       - server
 
   php:
+    container_name: application
     build:
       dockerfile: ./docker/php/Dockerfile
       context: ./
