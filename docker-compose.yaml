@@ -1,9 +1,8 @@
 version: '3.7'
 
 services:
-  web:
+  proxy:
     image: nginx:latest
-    container_name: proxy
     restart: always
     ports:
       - "8080:80"
@@ -11,13 +10,12 @@ services:
       - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
       - ./docker/nginx/log.conf:/usr/local/etc/php-fpm.d/zz-log.conf
     depends_on:
-      - php
+      - web
       - mongo
     networks:
       - server
 
-  php:
-    container_name: application
+  web:
     build:
       dockerfile: ./docker/php/Dockerfile
       context: ./
@@ -36,7 +34,7 @@ services:
       - mongo-data:/data/db
 #      - ./docker/database/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     environment:
-      MONGO_INITDB_ROOT_USERNAME: test
+      MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: pass
     ports:
       - 27017:27017

@@ -1,10 +1,10 @@
 #!/bin/sh
 
-if [ ! "$(docker ps -q -f name=cycle-saver-api-php_php_1)" ]; then
+if [ ! "$(docker ps -q -f name=cycle-saver-api-php_web_1)" ]; then
   echo "\e[96m\e[1mDocker container stopped, starting container\e[0m"
   docker-compose up -d
 fi
 
 echo "\e[96m\e[1mDocker container running, starting tests\e[0m"
 
-docker-compose run php bin/test $@
+docker-compose run web bin/test $@
