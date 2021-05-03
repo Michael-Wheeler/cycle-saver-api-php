@@ -1,3 +1,6 @@
 #!/bin/sh
 
+echo $(ls )
+echo $(ls bin/)
+
 vendor/bin/phpunit $@
