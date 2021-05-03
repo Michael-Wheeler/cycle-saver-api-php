@@ -35,12 +35,9 @@ jobs:
           name: Build test image
           command: docker-compose -f docker-compose.yaml up -d --build
 
-      - run: sudo pecl install mongodb-1.7.2
-      - run: sudo docker-php-ext-enable mongodb
-
       - run:
           name: Test image
-          command: vendor/bin/phpunit
+          command: docker-compose run php /opt/vendor/bin/phpunit
 
       - deploy:
           name: Deploy to Production
